@@ -37,30 +37,6 @@ export default class extends BotCommand {
 	}
 
 	async run(msg: KlasaMessage, [quantity, itemName]: [number, string]) {
-		if (msg.flagArgs.items) {
-			const creatableTable = table([
-				['Item Name', 'Input Items', 'GP Cost', 'Skills Required', 'QP Required'],
-				...Createables.map(i => [
-					i.name,
-					`${Object.entries(i.inputItems)
-						.map(entry => `${entry[1]} ${itemNameFromID(parseInt(entry[0]))}`)
-						.join('\n')}`,
-					`${i.GPCost ?? 0}`,
-					`${
-						i.requiredSkills === undefined
-							? ''
-							: Object.entries(i.requiredSkills)
-									.map(entry => `${entry[0]}: ${entry[1]}`)
-									.join('\n')
-					}`,
-					`${i.QPRequired ?? ''}`
-				])
-			]);
-			return msg.channel.sendFile(Buffer.from(creatableTable), `Creatables.txt`);
-		}
-		if (itemName === undefined) {
-			throw `Item name is a required argument.`;
-		}
 		itemName = itemName.toLowerCase();
 
 		const createableItem = Createables.find(item => stringMatches(item.name, itemName));
