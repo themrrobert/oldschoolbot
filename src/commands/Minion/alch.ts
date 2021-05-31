@@ -10,7 +10,7 @@ import { AlchingActivityTaskOptions } from '../../lib/types/minions';
 import { formatDuration, updateBankSetting } from '../../lib/util';
 import addSubTaskToActivityTask from '../../lib/util/addSubTaskToActivityTask';
 import resolveItems from '../../lib/util/resolveItems';
-+import Items from 'oldschooljs/dist/structures/Items';
+import Items from 'oldschooljs/dist/structures/Items';
 
 const unlimitedFireRuneProviders = resolveItems([
 	'Staff of fire',
