@@ -42,12 +42,16 @@ export default class extends BotCommand {
 				...Createables.map(i => [
 					i.name,
 					`${Object.entries(i.inputItems)
-							.map(entry => `${entry[1]} ${itemNameFromID(parseInt(entry[0]))}`)
-							.join("\n")}`,
+						.map(entry => `${entry[1]} ${itemNameFromID(parseInt(entry[0]))}`)
+						.join('\n')}`,
 					`${i.GPCost ?? 0}`,
-					`${i.requiredSkills === undefined ? '' : Object.entries(i.requiredSkills)
-						.map(entry => `${entry[0]}: ${entry[1]}`)
-						.join("\n")}`,
+					`${
+						i.requiredSkills === undefined
+							? ''
+							: Object.entries(i.requiredSkills)
+									.map(entry => `${entry[0]}: ${entry[1]}`)
+									.join('\n')
+					}`,
 					`${i.QPRequired ?? ''}`
 				])
 			]);
