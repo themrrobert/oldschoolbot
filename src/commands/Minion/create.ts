@@ -15,7 +15,6 @@ import {
 	removeBankFromBank,
 	stringMatches
 } from '../../lib/util';
-import Fletching from "../../lib/skilling/skills/fletching";
 
 export default class extends BotCommand {
 	public constructor(store: CommandStore, file: string[], directory: string) {
