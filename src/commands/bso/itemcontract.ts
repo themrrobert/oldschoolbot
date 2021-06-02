@@ -37,6 +37,7 @@ export default class DailyCommand extends BotCommand {
 			altProtection: true,
 			oneAtTime: true,
 			cooldown: 5,
+			aliases: ['ic'],
 			categoryFlags: ['minion'],
 			usage: '[str:...string]'
 		});
