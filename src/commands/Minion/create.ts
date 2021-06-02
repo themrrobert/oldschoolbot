@@ -1,6 +1,5 @@
 import { CommandStore, KlasaMessage } from 'klasa';
 import { Bank } from 'oldschooljs';
-import { table } from 'table';
 
 import { Time } from '../../lib/constants';
 import Createables from '../../lib/data/createables';
@@ -15,7 +14,6 @@ import {
 	removeBankFromBank,
 	stringMatches
 } from '../../lib/util';
-import getOSItem from '../../lib/util/getOSItem';
 
 export default class extends BotCommand {
 	public constructor(store: CommandStore, file: string[], directory: string) {
@@ -37,6 +35,63 @@ export default class extends BotCommand {
 	}
 
 	async run(msg: KlasaMessage, [quantity, itemName]: [number, string]) {
+		if (msg.flagArgs.items) {
+			const testRegex = /[\u0001-\u0006\u0008\u0009\u000B-\u001A]/;
+			let results = '';
+			Createables.forEach(c => {
+				let fail = false;
+				fail = ((c.GPCost ?? 0).toString().match(testRegex) || (c.QPRequired ?? 0).toString().match(testRegex)
+					|| c.name.match(testRegex)) ? true : fail;
+				if (c.requiredSkills !== undefined) {
+					if (Object.entries(c.requiredSkills)
+						.map(entry => `${entry[0]}: ${entry[1]}`)
+						.join(',').match(testRegex)) {
+						//results += Object.entries(c.requiredSkills)
+						//	.map(entry => `${entry[0]}: ${entry[1]}`)
+						//	.join(',');
+						fail = true;
+					}
+				}
+				if (c.inputItems !== undefined) {
+					if (Object.entries(c.inputItems)
+						.map(entry => `${entry[1]} ${itemNameFromID(parseInt(entry[0]))}`)
+						.join(', ').match(testRegex)) {
+						fail = true;
+					}
+				}
+				results += fail ? c.name + "\n" : '';
+			})
+			return msg.channel.send(results);
+		}
+			/*
+			return msg.channel.sendFile(
+				Buffer.from(
+					Createables.map(item => {
+						const skillsRequired =
+							item.requiredSkills === undefined
+								? ''
+								: `\nRequired skills: ${Object.entries(item.requiredSkills)
+										.map(entry => `${entry[0]}: ${entry[1]}`)
+										.join(',')}`;
+						const qpRequired =
+							item.QPRequired === undefined
+								? ''
+								: `\nQP Required: ${item.QPRequired}`;
+						const gpCost = item.GPCost === undefined ? '' : `\nGP Cost: ${item.GPCost}`;
+						return (
+							`${item.name}: ${Object.entries(item.inputItems)
+								.map(entry => `${entry[1]} ${itemNameFromID(parseInt(entry[0]))}`)
+								.join(', ')}` + `${skillsRequired}${qpRequired}${gpCost}`
+						);
+					}).join('\n\n')
+				),
+				`Available creatable items.txt`
+			);
+		}
+		*/
+		if (itemName === undefined) {
+			throw `Item name is a required argument.`;
+		}
 		itemName = itemName.toLowerCase();
 
 		const createableItem = Createables.find(item => stringMatches(item.name, itemName));
