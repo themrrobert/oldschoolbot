@@ -14,6 +14,7 @@ import {
 	removeBankFromBank,
 	stringMatches
 } from '../../lib/util';
+import getOSItem from "../../lib/util/getOSItem";
 
 export default class extends BotCommand {
 	public constructor(store: CommandStore, file: string[], directory: string) {
