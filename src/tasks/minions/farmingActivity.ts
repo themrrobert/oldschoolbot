@@ -127,9 +127,11 @@ export default class extends Task {
 
 		if (planting && plant !== undefined) {
 			if (plant.name === `Mysterious tree`) {
-				let upper = randInt(quantity, quantity * 4);
-				for (let i = 0; i < upper; i++) {
-					loot = addItemToBank(loot, getRandomMysteryBox());
+				for (let q = 0; q < quantity; q++) {
+					let upper = randInt(1, 4);
+					for (let i = 0; i < upper; i++) {
+						loot = addItemToBank(loot, getRandomMysteryBox());
+					}
 				}
 			}
 		}
@@ -504,9 +506,11 @@ export default class extends Task {
 			}
 
 			if (plantToHarvest.name === `Mysterious tree`) {
-				let upper = randInt(quantity, quantity * 6);
-				for (let i = 0; i < upper; i++) {
-					loot = addItemToBank(loot, getRandomMysteryBox());
+				for (let q = 0; q < quantity; q++) {
+					let upper = randInt(1, 6);
+					for (let i = 0; i < upper; i++) {
+						loot = addItemToBank(loot, getRandomMysteryBox());
+					}
 				}
 			}
 
