@@ -217,6 +217,7 @@ export const vannakaMonsters: KillableMonster[] = [
 		healAmountNeeded: 28,
 		attackStyleToUse: GearSetupTypes.Melee,
 		attackStylesUsed: [GearStat.AttackSlash],
+		combatXpMultiplier: 1.025,
 		canCannon: true
 	},
 	{

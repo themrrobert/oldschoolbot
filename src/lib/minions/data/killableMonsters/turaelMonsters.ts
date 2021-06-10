@@ -210,7 +210,7 @@ export const turaelMonsters: KillableMonster[] = [
 		aliases: Monsters.Cow.aliases,
 		timeToFinish: Time.Second * 6,
 		table: Monsters.Cow,
-
+		emoji: '🐮',
 		wildy: false,
 		canBeKilled: true,
 		difficultyRating: 1,

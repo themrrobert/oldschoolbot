@@ -9,7 +9,7 @@ export default class extends BotCommand {
 	public constructor(store: CommandStore, file: string[], directory: string) {
 		super(store, file, directory, {
 			runIn: ['text', 'dm'],
-			usage: '[add|remove|list|help] [input:str]',
+			usage: '[add|remove|list|help] [input:...str]',
 			usageDelim: ' ',
 			categoryFlags: ['settings', 'minion'],
 			aliases: ['cbopts', 'cbops'],
@@ -55,7 +55,7 @@ export default class extends BotCommand {
 
 		if (currentStatus === nextBool) {
 			return msg.send(
-				`"${newcbopt.name}" is already ${!currentStatus ? 'enabled' : 'disabled'} for you.`
+				`"${newcbopt.name}" is already ${currentStatus ? 'enabled' : 'disabled'} for you.`
 			);
 		}
 

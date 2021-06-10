@@ -188,7 +188,9 @@ const killableMonsters: KillableMonster[] = [
 		wildy: false,
 		canBeKilled: false,
 		difficultyRating: 0,
-		qpRequired: 0
+		qpRequired: 0,
+		canCannon: true,
+		cannonMulti: true
 	},
 	{
 		id: Monsters.Woman.id,
@@ -202,6 +204,7 @@ const killableMonsters: KillableMonster[] = [
 		difficultyRating: 0,
 		qpRequired: 0
 	},
+	/*
 	{
 		id: Monsters.Goblin.id,
 		name: Monsters.Goblin.name,
@@ -251,6 +254,8 @@ const killableMonsters: KillableMonster[] = [
 		difficultyRating: 0,
 		qpRequired: 0
 	},
+
+
 	{
 		id: Monsters.Skeleton.id,
 		name: Monsters.Skeleton.name,
@@ -328,6 +333,8 @@ const killableMonsters: KillableMonster[] = [
 		difficultyRating: 0,
 		qpRequired: 0
 	},
+
+	 */
 	{
 		id: Monsters.Sarachnis.id,
 		name: Monsters.Sarachnis.name,

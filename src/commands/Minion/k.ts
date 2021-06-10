@@ -265,7 +265,7 @@ export default class extends BotCommand {
 		let pvmCost = false;
 		consumableCosts.forEach(cc => {
 			const itemCost = cc!.qtyPerKill
-				? cc!.itemCost.clone().multiply(quantity)
+				? cc!.itemCost.clone().multiply(quantity as number)
 				: cc!.qtyPerMinute
 					? cc!.itemCost.clone().multiply(Math.ceil((duration / Time.Minute) * cc!.qtyPerMinute))
 					: null;
