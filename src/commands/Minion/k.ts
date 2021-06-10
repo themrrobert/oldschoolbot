@@ -1,7 +1,7 @@
 import { MessageAttachment } from 'discord.js';
 import { calcWhatPercent, increaseNumByPercent, objectKeys, reduceNumByPercent, round } from 'e';
 import { CommandStore, KlasaMessage, KlasaUser } from 'klasa';
-import { Monsters } from 'oldschooljs';
+import { Bank, Monsters } from 'oldschooljs';
 import { MonsterAttribute } from 'oldschooljs/dist/meta/monsterData';
 
 import { Activity, Time } from '../../lib/constants';
@@ -30,6 +30,15 @@ import findMonster, {
 } from '../../lib/util';
 import addSubTaskToActivityTask from '../../lib/util/addSubTaskToActivityTask';
 import itemID from '../../lib/util/itemID';
+import {
+	boostCannon,
+	boostCannonMulti,
+	boostIceBarrage, boostIceBurst, cannonMultiConsumables, cannonSingleConsumables,
+	CombatOptionsEnum,
+	iceBarrageConsumables,
+	iceBurstConsumables
+} from "../../lib/minions/data/combatConstants";
+import {Consumable} from "../../lib/minions/types";
 
 const validMonsters = killableMonsters.map(mon => mon.name).join(`\n`);
 const invalidMonsterMsg = (prefix: string) =>
@@ -174,6 +183,30 @@ export default class extends BotCommand {
 			boosts.push('15% for Black mask on melee task');
 		}
 
+		// Start of the consumable code. continued later in other costs.
+		const consumableCosts : Consumable[] = [];
+
+		// Calculate Cannon and Barrage boosts + costs:
+
+		const myCBOpts = msg.author.settings.get(UserSettings.CombatOptions);
+		if (monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
+			consumableCosts.push(iceBarrageConsumables);
+			timeToFinish = reduceNumByPercent(timeToFinish, boostIceBarrage);
+			boosts.push(`${boostIceBarrage}% for Ice Barrage`);
+		} else if(monster!.canBarrage && (msg.flagArgs.burst || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBurst))) {
+			consumableCosts.push(iceBurstConsumables);
+			timeToFinish = reduceNumByPercent(timeToFinish, boostIceBurst);
+			boosts.push(`${boostIceBurst}% for Ice Burst`);
+		} else if(monster!.cannonMulti && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
+			consumableCosts.push(cannonMultiConsumables);
+			timeToFinish = reduceNumByPercent(timeToFinish, boostCannonMulti);
+			boosts.push(`${boostCannonMulti}% for Cannon in multi`);
+		} else if(monster!.canCannon && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
+			consumableCosts.push(cannonSingleConsumables);
+			timeToFinish = reduceNumByPercent(timeToFinish, boostCannon);
+			boosts.push(`${boostCannon}% for Cannon in singles`);
+		}
+
 		const maxTripLength = msg.author.maxTripLength(Activity.MonsterKilling);
 
 		// If no quantity provided, set it to the max.
@@ -205,15 +238,38 @@ export default class extends BotCommand {
 		}
 
 		quantity = Math.max(1, quantity);
+
+		// TODO: Add this (and more) cost to KillableMonsters
+		if (['hydra', 'alchemical hydra'].includes(monster.name.toLowerCase())) {
+			// Add a cost of 1 antidote++(4) per 15 minutes
+			const hydraCost : Consumable = {
+				itemCost: new Bank()
+					.add('Antidote++(4)', 1),
+				qtyPerMinute: 0.067
+			}
+			consumableCosts.push(hydraCost);
+		}
+
+		// Check consumables: (hope this forEach is ok :) )
+		const lootToRemove = new Bank();
+		let pvmCost = false;
+		consumableCosts.forEach(cc => {
+			const itemCost = cc!.qtyPerKill
+				? cc!.itemCost.clone().multiply(quantity)
+				: cc!.qtyPerMinute
+					? cc!.itemCost.clone().multiply(Math.ceil((duration / Time.Minute) * cc!.qtyPerMinute))
+					: null;
+			if (itemCost)
+			{
+				pvmCost = true;
+				lootToRemove.add(itemCost);
+			}
+		})
+
 		const itemCost = monster.itemCost ? monster.itemCost.clone().multiply(quantity) : null;
 		if (itemCost) {
-			if (!msg.author.owns(itemCost)) {
-				return msg.channel.send(
-					`You don't have the items needed to kill ${quantity}x ${monster.name}, you need: ${itemCost}.`
-				);
-			}
-			updateBankSetting(this.client, ClientSettings.EconomyStats.PVMCost, itemCost);
-			await msg.author.removeItemsFromBank(itemCost);
+			pvmCost = true;
+			lootToRemove.add(itemCost);
 		}
 
 		// Check food
@@ -256,18 +312,16 @@ export default class extends BotCommand {
 			duration *= 0.9;
 		}
 
-		// TODO: Add a time-based cost to KillableMonsters
-		if (['hydra', 'alchemical hydra'].includes(monster.name.toLowerCase())) {
-			const potsTotal = await msg.author.numberOfItemInBank(itemID('Antidote++(4)'));
-			// Potions actually last 36+ minutes for a 4-dose, but we want item sink
-			const potsToRemove = Math.ceil(duration / (15 * Time.Minute));
-			if (potsToRemove > potsTotal) {
+		if (pvmCost)
+		{
+			if (!msg.author.owns(itemCost)) {
 				return msg.channel.send(
-					`You don't have enough Antidote++(4) to kill ${quantity}x ${monster.name}.`
+					`You don't have the items needed to kill ${quantity}x ${monster.name}, you need: ${itemCost}.`
 				);
 			}
-			await msg.author.removeItemFromBank(itemID('Antidote++(4)'), potsToRemove);
 		}
+		updateBankSetting(this.client, ClientSettings.EconomyStats.PVMCost, itemCost);
+		await msg.author.removeItemsFromBank(itemCost);
 
 		await addSubTaskToActivityTask<MonsterActivityTaskOptions>(this.client, {
 			monsterID: monster.id,

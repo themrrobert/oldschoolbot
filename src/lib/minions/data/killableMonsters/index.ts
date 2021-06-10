@@ -289,19 +289,6 @@ const killableMonsters: KillableMonster[] = [
 		qpRequired: 0
 	},
 	{
-		id: Monsters.FireGiant.id,
-		name: Monsters.FireGiant.name,
-		aliases: Monsters.FireGiant.aliases,
-		timeToFinish: Time.Second * 16,
-		table: Monsters.FireGiant,
-
-		wildy: false,
-		canBeKilled: false,
-		difficultyRating: 0,
-		notifyDrops: resolveItems(['Giant champion scroll']),
-		qpRequired: 0
-	},
-	{
 		id: Monsters.BlueDragon.id,
 		name: Monsters.BlueDragon.name,
 		aliases: Monsters.BlueDragon.aliases,
