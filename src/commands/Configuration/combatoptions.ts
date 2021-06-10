@@ -68,6 +68,6 @@ export default class extends BotCommand {
 
 		await msg.author.settings.update(UserSettings.CombatOptions, newcbopt.id);
 
-		return msg.send(`${newcbopt.name} is now ${!nextBool ? 'enabled' : 'disabled'} for you.`);
+		return msg.send(`${newcbopt.name} is now ${nextBool ? 'enabled' : 'disabled'} for you.`);
 	}
 }
