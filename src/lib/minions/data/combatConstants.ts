@@ -6,10 +6,13 @@ import itemID from "../../util/itemID";
 // Configure boost percents
 export const boostCannon = 30;
 export const boostCannonMulti = 50;
-export const xpPercentToCannon = 50;
-export const xpPercentToCannonM = 80;
 export const boostIceBurst = 35;
 export const boostIceBarrage = 55;
+// What % of the kills should be cannon XP
+export const xpPercentToCannon = 50;
+export const xpPercentToCannonM = 80;
+// Amount to vary cannon vs regular XP
+export const xpCannonVaryPercent = 10;
 
 export interface CombatOptionsDesc {
 	id: number,

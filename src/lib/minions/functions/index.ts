@@ -6,7 +6,8 @@ import { NIGHTMARES_HP } from '../../constants';
 import { SkillsEnum } from '../../skilling/types';
 import killableMonsters from '../data/killableMonsters';
 import { KillableMonster } from '../types';
-import { xpPercentToCannon, xpPercentToCannonM } from "../data/combatConstants";
+import {xpCannonVaryPercent, xpPercentToCannon, xpPercentToCannonM} from "../data/combatConstants";
+import {randomVariation} from "../../util";
 
 export { default as reducedTimeForGroup } from './reducedTimeForGroup';
 export { default as calculateMonsterFood } from './calculateMonsterFood';
@@ -67,10 +68,11 @@ export async function addMonsterXP(
 	let hp = miscHpMap[monsterID] ?? 1;
 	let xpMultiplier = 1;
 	const cannonQty = cannonMulti
-		? Math.floor((xpPercentToCannonM / 100) * quantity)
+		? randomVariation(Math.floor((xpPercentToCannonM / 100) * quantity), xpCannonVaryPercent)
 		: usingCannon
-			? Math.floor((xpPercentToCannon / 100) * quantity)
+			? randomVariation(Math.floor((xpPercentToCannon / 100) * quantity), xpCannonVaryPercent)
 			: 0;
+
 	const normalQty = quantity - cannonQty;
 
 	if (monster && monster.customMonsterHP) {
