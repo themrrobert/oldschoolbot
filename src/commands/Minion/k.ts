@@ -238,6 +238,16 @@ export default class extends BotCommand {
 		}
 
 		quantity = Math.max(1, quantity);
+		let duration = timeToFinish * quantity;
+		if (quantity > 1 && duration > maxTripLength) {
+			return msg.send(
+				`${minionName} can't go on PvM trips longer than ${formatDuration(
+					maxTripLength
+				)}, try a lower quantity. The highest amount you can do for ${
+					monster.name
+				} is ${floor(maxTripLength / timeToFinish)}.`
+			);
+		}
 
 		// TODO: Add this (and more) cost to KillableMonsters
 		if (['hydra', 'alchemical hydra'].includes(monster.name.toLowerCase())) {
@@ -294,17 +304,7 @@ export default class extends BotCommand {
 			foodStr = result;
 		}
 
-		let duration = timeToFinish * quantity;
-		if (quantity > 1 && duration > maxTripLength) {
-			return msg.send(
-				`${minionName} can't go on PvM trips longer than ${formatDuration(
-					maxTripLength
-				)}, try a lower quantity. The highest amount you can do for ${
-					monster.name
-				} is ${floor(maxTripLength / timeToFinish)}.`
-			);
-		}
-
+		// Boosts that don't affect quantity:
 		duration = randomVariation(duration, 3);
 
 		if (isWeekend()) {
@@ -314,14 +314,14 @@ export default class extends BotCommand {
 
 		if (pvmCost)
 		{
-			if (!msg.author.owns(itemCost)) {
+			if (!msg.author.owns(lootToRemove)) {
 				return msg.channel.send(
-					`You don't have the items needed to kill ${quantity}x ${monster.name}, you need: ${itemCost}.`
+					`You don't have the items needed to kill ${quantity}x ${monster.name}, you need: ${lootToRemove}.`
 				);
 			}
 		}
-		updateBankSetting(this.client, ClientSettings.EconomyStats.PVMCost, itemCost);
-		await msg.author.removeItemsFromBank(itemCost);
+		updateBankSetting(this.client, ClientSettings.EconomyStats.PVMCost, lootToRemove);
+		await msg.author.removeItemsFromBank(lootToRemove);
 
 		await addSubTaskToActivityTask<MonsterActivityTaskOptions>(this.client, {
 			monsterID: monster.id,
