@@ -50,7 +50,9 @@ export default class extends Task {
 			: undefined;
 
 		const superiorTable = superiorsUnlocked && monster.superior ? monster.superior : undefined;
-		const isInCatacombs = monster.existsInCatacombs ?? undefined;
+		const isInCatacombs = data.usingCannon
+			? monster.existsInCatacombs ?? undefined
+			: undefined;
 
 		const killOptions: MonsterKillOptions = {
 			onSlayerTask: isOnTask,

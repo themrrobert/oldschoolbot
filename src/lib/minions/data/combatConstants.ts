@@ -5,6 +5,8 @@ import { Bank } from 'oldschooljs';
 // Configure boost percents
 export const boostCannon = 30;
 export const boostCannonMulti = 50;
+export const xpPercentToCannon = 50;
+export const xpPercentToCannonM = 80;
 export const boostIceBurst = 35;
 export const boostIceBarrage = 55;
 

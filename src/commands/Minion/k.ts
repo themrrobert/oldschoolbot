@@ -187,7 +187,8 @@ export default class extends BotCommand {
 		const consumableCosts : Consumable[] = [];
 
 		// Calculate Cannon and Barrage boosts + costs:
-
+		let usingCannon = false;
+		let cannonMulti = false;
 		const myCBOpts = msg.author.settings.get(UserSettings.CombatOptions);
 		if (attackStyles.includes(SkillsEnum.Magic) &&
 			monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
@@ -200,10 +201,13 @@ export default class extends BotCommand {
 			timeToFinish = reduceNumByPercent(timeToFinish, boostIceBurst);
 			boosts.push(`${boostIceBurst}% for Ice Burst`);
 		} else if(monster!.cannonMulti && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
+			usingCannon = true;
+			cannonMulti = true;
 			consumableCosts.push(cannonMultiConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostCannonMulti);
 			boosts.push(`${boostCannonMulti}% for Cannon in multi`);
 		} else if(monster!.canCannon && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
+			usingCannon = true;
 			consumableCosts.push(cannonSingleConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostCannon);
 			boosts.push(`${boostCannon}% for Cannon in singles`);
@@ -335,7 +339,9 @@ export default class extends BotCommand {
 			channelID: msg.channel.id,
 			quantity,
 			duration,
-			type: Activity.MonsterKilling
+			type: Activity.MonsterKilling,
+			usingCannon: usingCannon,
+			cannonMulti: cannonMulti
 		});
 
 		let response = `${minionName} is now killing ${quantity}x ${
