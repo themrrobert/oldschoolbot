@@ -189,11 +189,13 @@ export default class extends BotCommand {
 		// Calculate Cannon and Barrage boosts + costs:
 
 		const myCBOpts = msg.author.settings.get(UserSettings.CombatOptions);
-		if (monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
+		if (attackStyles.includes(SkillsEnum.Magic) &&
+			monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
 			consumableCosts.push(iceBarrageConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostIceBarrage);
 			boosts.push(`${boostIceBarrage}% for Ice Barrage`);
-		} else if(monster!.canBarrage && (msg.flagArgs.burst || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBurst))) {
+		} else if(attackStyles.includes(SkillsEnum.Magic) &&
+			monster!.canBarrage && (msg.flagArgs.burst || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBurst))) {
 			consumableCosts.push(iceBurstConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostIceBurst);
 			boosts.push(`${boostIceBurst}% for Ice Burst`);
@@ -275,6 +277,10 @@ export default class extends BotCommand {
 				lootToRemove.add(itemCost);
 			}
 		})
+
+		if (msg.author.hasItemEquippedOrInBank('Kodai wand')) {
+			lootToRemove.removeItem('Water rune', 1_000_000);
+		}
 
 		const itemCost = monster.itemCost ? monster.itemCost.clone().multiply(quantity) : null;
 		if (itemCost) {
