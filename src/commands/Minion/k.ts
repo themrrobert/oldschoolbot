@@ -278,7 +278,7 @@ export default class extends BotCommand {
 			}
 		})
 
-		if (msg.author.hasItemEquippedOrInBank('Water staff')) {
+		if (msg.author.hasItemEquippedOrInBank('Staff of water')) {
 			lootToRemove.removeItem(itemID('Water rune'), 1_000_000);
 		}
 
