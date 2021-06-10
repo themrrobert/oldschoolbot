@@ -562,7 +562,8 @@ export const vannakaMonsters: KillableMonster[] = [
 		healAmountNeeded: 28,
 		attackStyleToUse: GearSetupTypes.Melee,
 		attackStylesUsed: [GearStat.AttackCrush],
-		canBarrage: true
+		canBarrage: true,
+		canCannon: true
 	},
 	{
 		id: Monsters.GreenDragon.id,
@@ -891,7 +892,9 @@ export const vannakaMonsters: KillableMonster[] = [
 		superior: Monsters.InsatiableMutatedBloodveld,
 		healAmountNeeded: 36,
 		attackStyleToUse: GearSetupTypes.Range,
-		attackStylesUsed: [GearStat.AttackMagic]
+		attackStylesUsed: [GearStat.AttackMagic],
+		canCannon: true,
+		cannonMulti: true
 	},
 	{
 		id: Monsters.Nechryael.id,

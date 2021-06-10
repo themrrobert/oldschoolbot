@@ -254,7 +254,7 @@ const SimilarItems: Record<number, number[]> = {
 	[itemID('Facemask')]: slayerHelmSimilar,
 	[itemID('Reinforced goggles')]: slayerHelmSimilar,
 	[itemID('Anti-dragon shield')]: resolveItems([11284, 11283, 21633, 21634, 22003, 22002]),
-	[itemID('Water staff')]: resolveItems([
+	[itemID('Staff of water')]: resolveItems([
 		'Mist battlestaff',
 		'Mystic mist staff',
 		'Tome of water',
