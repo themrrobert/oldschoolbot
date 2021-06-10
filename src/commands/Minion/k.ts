@@ -278,7 +278,7 @@ export default class extends BotCommand {
 			}
 		})
 
-		if (msg.author.hasItemEquippedOrInBank('Kodai wand')) {
+		if (msg.author.hasItemEquippedOrInBank('Water staff')) {
 			lootToRemove.removeItem(itemID('Water rune'), 1_000_000);
 		}
 
