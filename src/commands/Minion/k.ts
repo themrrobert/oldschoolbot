@@ -193,6 +193,12 @@ export default class extends BotCommand {
 		if (msg.flagArgs.cannon && !hasCannon) {
 			return msg.send(`You don't own a Dwarf multicannon, so how could you use one?`);
 		}
+		if (msg.flagArgs.cannon && !monster!.canCannon) {
+			return msg.send(`${monster!.name} cannot be killed with a cannon.`);
+		}
+		if ((msg.flagArgs.burst || msg.flagArgs.barrage) && !monster!.canBarrage) {
+			return msg.send(`${monster!.name} cannot be barraged or bursted.`);
+		}
 		const myCBOpts = msg.author.settings.get(UserSettings.CombatOptions);
 		if (attackStyles.includes(SkillsEnum.Magic) &&
 			monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
