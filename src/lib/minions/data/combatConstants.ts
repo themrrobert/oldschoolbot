@@ -52,7 +52,7 @@ export const cannonSingleConsumables : Consumable = {
 export const cannonMultiConsumables : Consumable = {
 	itemCost: new Bank()
 		.add('Cannonball', 1),
-	qtyPerMinute: 80
+	qtyPerMinute: 60
 }
 export const iceBarrageConsumables : Consumable = {
 	itemCost: new Bank()

@@ -36,7 +36,9 @@ export default class extends Task {
 			quantity,
 			duration,
 			isOnTask,
-			quantitySlayed
+			quantitySlayed,
+			data.usingCannon,
+			data.cannonMulti
 		);
 
 		const mySlayerUnlocks = user.settings.get(UserSettings.Slayer.SlayerUnlocks);

@@ -6,7 +6,7 @@ import { NIGHTMARES_HP } from '../../constants';
 import { SkillsEnum } from '../../skilling/types';
 import killableMonsters from '../data/killableMonsters';
 import { KillableMonster } from '../types';
-import {xpPercentToCannon, xpPercentToCannonM} from "../data/combatConstants";
+import { xpPercentToCannon, xpPercentToCannonM } from "../data/combatConstants";
 
 export { default as reducedTimeForGroup } from './reducedTimeForGroup';
 export { default as calculateMonsterFood } from './calculateMonsterFood';
