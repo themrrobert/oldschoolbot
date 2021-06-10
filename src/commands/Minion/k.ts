@@ -279,7 +279,7 @@ export default class extends BotCommand {
 		})
 
 		if (msg.author.hasItemEquippedOrInBank('Kodai wand')) {
-			lootToRemove.removeItem('Water rune', 1_000_000);
+			lootToRemove.removeItem(itemID('Water rune'), 1_000_000);
 		}
 
 		const itemCost = monster.itemCost ? monster.itemCost.clone().multiply(quantity) : null;
