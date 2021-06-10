@@ -52,7 +52,7 @@ export default class extends Task {
 			: undefined;
 
 		const superiorTable = superiorsUnlocked && monster.superior ? monster.superior : undefined;
-		const isInCatacombs = data.usingCannon
+		const isInCatacombs = !data.usingCannon
 			? monster.existsInCatacombs ?? undefined
 			: undefined;
 
