@@ -338,8 +338,8 @@ export default class extends BotCommand {
 			duration
 		)} to finish. Attack styles used: ${attackStyles.join(', ')}.`;
 
-		if (itemCost) {
-			response += `Removed ${itemCost}.`;
+		if (pvmCost) {
+			response += `Removed ${lootToRemove}.`;
 		}
 
 		if (foodStr) {
