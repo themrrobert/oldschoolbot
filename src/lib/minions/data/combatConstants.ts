@@ -1,5 +1,6 @@
 import { Consumable } from "../types";
 import { Bank } from 'oldschooljs';
+import itemID from "../../util/itemID";
 
 
 // Configure boost percents
@@ -21,6 +22,12 @@ export enum CombatOptionsEnum {
 	AlwaysCannon,
 	AlwaysIceBurst,
 	AlwaysIceBarrage
+}
+export const CombatCannonItemBank = {
+	[itemID('Cannon barrels')]: 1,
+	[itemID('Cannon base')]: 1,
+	[itemID('Cannon furnace')]: 1,
+	[itemID('Cannon stand')]: 1
 }
 
 export const CombatOptionsArray: CombatOptionsDesc[] = [

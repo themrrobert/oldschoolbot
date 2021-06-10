@@ -33,7 +33,7 @@ import itemID from '../../lib/util/itemID';
 import {
 	boostCannon,
 	boostCannonMulti,
-	boostIceBarrage, boostIceBurst, cannonMultiConsumables, cannonSingleConsumables,
+	boostIceBarrage, boostIceBurst, cannonMultiConsumables, cannonSingleConsumables, CombatCannonItemBank,
 	CombatOptionsEnum,
 	iceBarrageConsumables,
 	iceBurstConsumables
@@ -189,6 +189,10 @@ export default class extends BotCommand {
 		// Calculate Cannon and Barrage boosts + costs:
 		let usingCannon = false;
 		let cannonMulti = false;
+		const hasCannon = msg.author.owns(CombatCannonItemBank);
+		if (msg.flagArgs.cannon && !hasCannon) {
+			return msg.send(`You don't own a Dwarf multicannon, so how could you use one?`);
+		}
 		const myCBOpts = msg.author.settings.get(UserSettings.CombatOptions);
 		if (attackStyles.includes(SkillsEnum.Magic) &&
 			monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
@@ -200,13 +204,13 @@ export default class extends BotCommand {
 			consumableCosts.push(iceBurstConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostIceBurst);
 			boosts.push(`${boostIceBurst}% for Ice Burst`);
-		} else if(monster!.cannonMulti && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
+		} else if(hasCannon && monster!.cannonMulti && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
 			usingCannon = true;
 			cannonMulti = true;
 			consumableCosts.push(cannonMultiConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostCannonMulti);
 			boosts.push(`${boostCannonMulti}% for Cannon in multi`);
-		} else if(monster!.canCannon && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
+		} else if(hasCannon && monster!.canCannon && (msg.flagArgs.cannon || myCBOpts.includes(CombatOptionsEnum.AlwaysCannon))) {
 			usingCannon = true;
 			consumableCosts.push(cannonSingleConsumables);
 			timeToFinish = reduceNumByPercent(timeToFinish, boostCannon);
