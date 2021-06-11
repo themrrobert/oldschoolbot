@@ -268,7 +268,6 @@ export default class extends BotCommand {
 			);
 		}
 
-		// TODO: Add this (and more) cost to KillableMonsters
 		if (['hydra', 'alchemical hydra'].includes(monster.name.toLowerCase())) {
 			// Add a cost of 1 antidote++(4) per 15 minutes
 			const hydraCost : Consumable = {
