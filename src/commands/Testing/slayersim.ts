@@ -1,14 +1,12 @@
 import { calcWhatPercent, increaseNumByPercent, reduceNumByPercent, round } from 'e';
 import { CommandStore, KlasaMessage, KlasaUser } from 'klasa';
 import { Time } from '../../lib/constants';
-import { bossTasks } from '../../lib/slayer/tasks/bossTasks';
 import { table } from 'table';
 import killableMonsters from '../../lib/minions/data/killableMonsters';
 import { minionNotBusy, requiresMinion } from '../../lib/minions/decorators';
 import { AttackStyles, resolveAttackStyles } from '../../lib/minions/functions';
 import calculateMonsterFood from '../../lib/minions/functions/calculateMonsterFood';
 import reducedTimeFromKC from '../../lib/minions/functions/reducedTimeFromKC';
-import { userCanUseTask, weightedPick} from '../../lib/slayer/slayerUtil';
 import { BotCommand } from '../../lib/structures/BotCommand';
 import {
 	addArrayOfNumbers
@@ -56,6 +54,9 @@ export default class extends BotCommand {
 	@minionNotBusy
 	async run(msg: KlasaMessage, [option = '']: [null | number | string, string]) {
 
+		if (option !== '') {
+			return msg.channel.send('No options accepted at this time');
+		}
 		// Start sim code
 		const simTable: string[][] = [];
 		simTable.push(['Master', 'Monster', 'Food/hr', 'Sharks/hr', 'Kills/hr', 'SlayerXP/hr','Cannon','MCannon','Burst','Barrage', 'Boost MSG']);
@@ -83,8 +84,8 @@ export default class extends BotCommand {
 					let cannonMXP = '';
 					let barrageXP = '';
 					let burstXP = '';
-					if (kMonster.canCannon) {
-						if (kMonster.cannonMulti) {
+					if (kMonster?.canCannon) {
+						if (kMonster?.cannonMulti) {
 							const tmpNewDuration = newDuration (boostCannonMulti/100);
 							const killsPerHour = Time.Hour / tmpNewDuration;
 							cannonMXP = (killsPerHour * mSlayerXP).toLocaleString();
@@ -94,7 +95,7 @@ export default class extends BotCommand {
 							cannonXP = (killsPerHour * mSlayerXP).toLocaleString();
 						}
 					}
-					if (kMonster.canBarrage) {
+					if (kMonster?.canBarrage) {
 						const tmpBarrageDuration = newDuration * (boostIceBarrage/100);
 						const killsPerHour = Time.Hour / tmpBarrageDuration;
 						barrageXP = (killsPerHour * mSlayerXP).toLocaleString();
