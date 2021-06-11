@@ -13,8 +13,9 @@ import {
 } from '../../lib/util';
 import {slayerMasters} from "../../lib/slayer/slayerMasters";
 import {boostCannon, boostCannonMulti, boostIceBarrage, boostIceBurst} from "../../lib/minions/data/combatConstants";
+import {production} from "../../config.example";
 
-function applySkillBoost(
+function applySkillBoostJr(
 	user: KlasaUser,
 	duration: number,
 	styles: AttackStyles[]
@@ -53,10 +54,13 @@ export default class extends BotCommand {
 	@requiresMinion
 	@minionNotBusy
 	async run(msg: KlasaMessage, [option = '']: [null | number | string, string]) {
-
+		if (production) {
+			return msg.channel.send('This command currently not enabled');
+		}
 		if (option !== '') {
 			return msg.channel.send('No options accepted at this time');
 		}
+
 		// Start sim code
 		const simTable: string[][] = [];
 		simTable.push(['Master', 'Monster', 'Food/hr', 'Sharks/hr', 'Kills/hr', 'SlayerXP/hr','Cannon','MCannon','Burst','Barrage', 'Boost MSG']);
@@ -73,12 +77,13 @@ export default class extends BotCommand {
 						kMonster!,
 						10000
 					);
-					const [newDuration, boostMsg] = applySkillBoost(msg.author, killTime, attackStyles);
+					const [newDuration, boostMsg] = applySkillBoostJr(msg.author, killTime, attackStyles);
 					const mSlayerXP = osjsMon?.data?.hitpoints ?
 						osjsMon!.data!.slayerXP ?
 							osjsMon!.data!.slayerXP :
 							osjsMon!.data!.hitpoints
 						: 0;
+
 					// add boosts
 					let cannonXP = '';
 					let cannonMXP = '';
@@ -86,29 +91,27 @@ export default class extends BotCommand {
 					let burstXP = '';
 					if (kMonster?.canCannon) {
 						if (kMonster?.cannonMulti) {
-							const tmpNewDuration = newDuration (boostCannonMulti/100);
+							const tmpNewDuration = newDuration * (1 - boostCannonMulti/100);
 							const killsPerHour = Time.Hour / tmpNewDuration;
 							cannonMXP = (killsPerHour * mSlayerXP).toLocaleString();
 						} else {
-							const tmpNewDuration = newDuration * (boostCannon/100);
+							const tmpNewDuration = newDuration * (1 - boostCannon/100);
 							const killsPerHour = Time.Hour / tmpNewDuration;
 							cannonXP = (killsPerHour * mSlayerXP).toLocaleString();
 						}
 					}
 					if (kMonster?.canBarrage) {
-						const tmpBarrageDuration = newDuration * (boostIceBarrage/100);
+						const tmpBarrageDuration = newDuration * (1 - boostIceBarrage/100);
 						const killsPerHour = Time.Hour / tmpBarrageDuration;
 						barrageXP = (killsPerHour * mSlayerXP).toLocaleString();
-						const tmpBurstDuration = newDuration * (boostIceBurst/100);
+						const tmpBurstDuration = newDuration * (1 - boostIceBurst/100);
 						const killsPerHourBurst = Time.Hour / tmpBurstDuration;
 						burstXP = (killsPerHourBurst * mSlayerXP).toLocaleString();
-
 					}
 
 					const killsPerHour = Time.Hour / newDuration;
 					let slayerXpPerHour = 'NA';
 					slayerXpPerHour = (killsPerHour * mSlayerXP).toLocaleString();
-
 
 					const foodPerHour = calculateMonsterFood(kMonster!, msg.author)[0] * killsPerHour;
 					simTable.push([master!.name, kMonster!.name, Math.round(foodPerHour).toLocaleString(),
@@ -117,70 +120,6 @@ export default class extends BotCommand {
 				});
 			});
 		});
-
 		return msg.channel.sendFile(Buffer.from(table(simTable)), `slayerMonsterSim.txt`);
-
-/*
-		// Check requirements
-		const [hasReqs, reason] = msg.author.hasMonsterRequirements(monster);
-		if (!hasReqs) throw reason;
-
-		if (monster.pohBoosts) {
-			const [boostPercent, messages] = calcPOHBoosts(
-				await msg.author.getPOH(),
-				monster.pohBoosts
-			);
-			if (boostPercent > 0) {
-				timeToFinish = reduceNumByPercent(timeToFinish, boostPercent);
-				boosts.push(messages.join(' + '));
-			}
-		}
-
-		for (const [itemID, boostAmount] of Object.entries(
-			msg.author.resolveAvailableItemBoosts(monster)
-		)) {
-			timeToFinish *= (100 - boostAmount) / 100;
-			boosts.push(`${boostAmount}% for ${itemNameFromID(parseInt(itemID))}`);
-		}
-
-		// Removed vorkath because he has a special boost.
-		if (
-			monster.name.toLowerCase() !== 'vorkath' &&
-			osjsMon?.data?.attributes?.includes(MonsterAttribute.Dragon)
-		) {
-			if (
-				msg.author.hasItemEquippedOrInBank('Dragon hunter lance') &&
-				!attackStyles.includes(SkillsEnum.Ranged) &&
-				!attackStyles.includes(SkillsEnum.Magic)
-			) {
-				timeToFinish = reduceNumByPercent(timeToFinish, 15);
-				boosts.push('15% for Dragon hunter lance');
-			} else if (
-				msg.author.hasItemEquippedOrInBank('Dragon hunter crossbow') &&
-				attackStyles.includes(SkillsEnum.Ranged)
-			) {
-				timeToFinish = reduceNumByPercent(timeToFinish, 15);
-				boosts.push('15% for Dragon hunter crossbow');
-			}
-		}
-		// Add 15% slayer boost on task if they have black mask or similar
-		if (attackStyles.includes(SkillsEnum.Ranged) || attackStyles.includes(SkillsEnum.Magic)) {
-			if (isOnTask && msg.author.hasItemEquippedOrInBank(itemID('Black mask (i)'))) {
-				timeToFinish = reduceNumByPercent(timeToFinish, 15);
-				boosts.push('15% for Black mask (i) on non-melee task');
-			}
-		} else if (isOnTask && msg.author.hasItemEquippedOrInBank(itemID('Black mask'))) {
-			timeToFinish = reduceNumByPercent(timeToFinish, 15);
-			boosts.push('15% for Black mask on melee task');
-		}
-
-		const maxTripLength = msg.author.maxTripLength(Activity.MonsterKilling);
-
-		// If no quantity provided, set it to the max.
-		if (quantity === null) {
-			quantity = floor(maxTripLength / timeToFinish);
-		}
-		*/
-
 	}
 }
