@@ -199,6 +199,9 @@ export default class extends BotCommand {
 		if ((msg.flagArgs.burst || msg.flagArgs.barrage) && !monster!.canBarrage) {
 			return msg.send(`${monster!.name} cannot be barraged or bursted.`);
 		}
+		if ((msg.flagArgs.burst || msg.flagArgs.barrage) && !attackStyles.includes(SkillsEnum.Magic)) {
+			return msg.send(`You can only barrage/burst when you're using magic!`);
+		}
 		const myCBOpts = msg.author.settings.get(UserSettings.CombatOptions);
 		if (attackStyles.includes(SkillsEnum.Magic) &&
 			monster!.canBarrage && (msg.flagArgs.barrage || myCBOpts.includes(CombatOptionsEnum.AlwaysIceBarrage))) {
