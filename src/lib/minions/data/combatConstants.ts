@@ -57,7 +57,7 @@ export const CombatOptionsArray: CombatOptionsDesc[] = [
 export const cannonSingleConsumables : Consumable = {
 	itemCost: new Bank()
 		.add('Cannonball', 1),
-	qtyPerMinute: 25
+	qtyPerMinute: 18
 }
 export const cannonMultiConsumables : Consumable = {
 	itemCost: new Bank()
