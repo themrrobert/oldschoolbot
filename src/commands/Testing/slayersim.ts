@@ -13,48 +13,9 @@ import { BotCommand } from '../../lib/structures/BotCommand';
 import {
 	addArrayOfNumbers
 } from '../../lib/util';
-import {SlayerMaster} from "../../lib/slayer/types";
 import {slayerMasters} from "../../lib/slayer/slayerMasters";
+import {boostCannon, boostCannonMulti, boostIceBarrage, boostIceBurst} from "../../lib/minions/data/combatConstants";
 
-// boss tasks
-export function assignNewSlayerTask(_user: KlasaUser, master: SlayerMaster) {
-	// assignedTask is the task object, currentTask is the database row.
-	const baseTasks = [...master.tasks].filter(t => userCanUseTask(_user, t, master));
-	let bossTask = false;
-
-	/*
-	if (
-		_user.settings
-			.get(UserSettings.Slayer.SlayerUnlocks)
-			.includes(SlayerTaskUnlocksEnum.LikeABoss) &&
-		(master.name.toLowerCase() === 'konar quo maten' ||
-			master.name.toLowerCase() === 'duradel' ||
-			master.name.toLowerCase() === 'nieve' ||
-			master.name.toLowerCase() === 'chaeldar') &&
-		roll(25)
-	) {
-		bossTask = true;
-	}
-	console.log(`Boss task? ${bossTask}.`);
-
-	 */
-	const assignedTask = bossTask ? weightedPick(bossTasks) : weightedPick(baseTasks);
-	//const newUser = await getNewUser(_user.id);
-
-	/*
-		const currentTask = new SlayerTaskTable();
-		currentTask.user = newUser;
-		currentTask.quantity = randInt(assignedTask.amount[0], assignedTask.amount[1]);
-		currentTask.quantityRemaining = currentTask.quantity;
-		currentTask.slayerMasterID = master.id;
-		currentTask.monsterID = assignedTask.monster.id;
-		currentTask.skipped = false;
-		await currentTask.save();
-		*/
-	//await _user.settings.update(UserSettings.Slayer.LastTask, assignedTask.monster.id);
-
-	return assignedTask;
-}
 function applySkillBoost(
 	user: KlasaUser,
 	duration: number,
@@ -95,36 +56,9 @@ export default class extends BotCommand {
 	@minionNotBusy
 	async run(msg: KlasaMessage, [option = '']: [null | number | string, string]) {
 
-		if (option === 'tasksim' ) {
-			throw `Command disabled because it takes a long time to run.`;
-			/*
-			const simTable: string[][] = [];
-			simTable.push(['Master', 'Monster', 'Weight', 'Rolls', 'Total Rolls']);
-
-			slayerMasters.forEach(master => {
-				let tasks  : { [key : string] : { ct: number, weight: number} } = {};
-				const iterations = 3000;
-				for (let i = 1; i < iterations; i++) {
-					const newTask = assignNewSlayerTask(msg.author, master);
-					tasks[newTask!.monster!.name] = tasks[newTask!.monster!.name] ?
-						{ ct: tasks[newTask!.monster!.name].ct + 1, weight: newTask!.weight }
-						: { ct: 1, weight: newTask!.weight };
-				}
-				Object.keys(tasks).forEach(tstr => {
-					simTable.push([master.name, tstr, tasks[tstr].weight.toString(), tasks[tstr].ct.toLocaleString(), iterations.toLocaleString()]);
-				});
-
-			});
-			return msg.channel.sendFile(Buffer.from(table(simTable)), `slayerMasterTaskSim.txt`);
-			*/
-		}
-
-
 		// Start sim code
-		// TODO Sim code for masters, tasks xp/per hour
-		// Sim code for numnber of tasks.
 		const simTable: string[][] = [];
-		simTable.push(['Master', 'Monster', 'Food/hr', 'Sharks/hr', 'Kills/hr', 'SlayerXP/hr', 'Boost MSG']);
+		simTable.push(['Master', 'Monster', 'Food/hr', 'Sharks/hr', 'Kills/hr', 'SlayerXP/hr','Cannon','MCannon','Burst','Barrage', 'Boost MSG']);
 
 		slayerMasters.forEach(master => {
 			master.tasks.forEach(task => {
@@ -136,21 +70,49 @@ export default class extends BotCommand {
 					});
 					let [killTime, percentReduced] = reducedTimeFromKC(
 						kMonster!,
-						msg.author.getKC(task.monster.id)
+						10000
 					);
 					const [newDuration, boostMsg] = applySkillBoost(msg.author, killTime, attackStyles);
-					// add code to uses boosts maybe?
+					const mSlayerXP = osjsMon?.data?.hitpoints ?
+						osjsMon!.data!.slayerXP ?
+							osjsMon!.data!.slayerXP :
+							osjsMon!.data!.hitpoints
+						: 0;
+					// add boosts
+					let cannonXP = '';
+					let cannonMXP = '';
+					let barrageXP = '';
+					let burstXP = '';
+					if (kMonster.canCannon) {
+						if (kMonster.cannonMulti) {
+							const tmpNewDuration = newDuration (boostCannonMulti/100);
+							const killsPerHour = Time.Hour / tmpNewDuration;
+							cannonMXP = (killsPerHour * mSlayerXP).toLocaleString();
+						} else {
+							const tmpNewDuration = newDuration * (boostCannon/100);
+							const killsPerHour = Time.Hour / tmpNewDuration;
+							cannonXP = (killsPerHour * mSlayerXP).toLocaleString();
+						}
+					}
+					if (kMonster.canBarrage) {
+						const tmpBarrageDuration = newDuration * (boostIceBarrage/100);
+						const killsPerHour = Time.Hour / tmpBarrageDuration;
+						barrageXP = (killsPerHour * mSlayerXP).toLocaleString();
+						const tmpBurstDuration = newDuration * (boostIceBurst/100);
+						const killsPerHourBurst = Time.Hour / tmpBurstDuration;
+						burstXP = (killsPerHourBurst * mSlayerXP).toLocaleString();
+
+					}
+
 					const killsPerHour = Time.Hour / newDuration;
 					let slayerXpPerHour = 'NA';
-					if (osjsMon?.data?.hitpoints) {
-						slayerXpPerHour = (osjsMon!.data!.slayerXP ?
-							killsPerHour * osjsMon!.data!.slayerXP :
-							killsPerHour * osjsMon!.data!.hitpoints).toLocaleString();
-					}
+					slayerXpPerHour = (killsPerHour * mSlayerXP).toLocaleString();
+
+
 					const foodPerHour = calculateMonsterFood(kMonster!, msg.author)[0] * killsPerHour;
 					simTable.push([master!.name, kMonster!.name, Math.round(foodPerHour).toLocaleString(),
 						Math.ceil(foodPerHour / 20).toLocaleString(), Math.floor(killsPerHour).toString(),
-						slayerXpPerHour, `${percentReduced}% for KC, ${boostMsg}`]);
+						slayerXpPerHour, cannonXP, cannonMXP, burstXP, barrageXP, `${percentReduced}% for KC, ${boostMsg}`]);
 				});
 			});
 		});
