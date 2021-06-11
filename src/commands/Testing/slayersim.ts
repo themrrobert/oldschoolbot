@@ -13,7 +13,6 @@ import {
 } from '../../lib/util';
 import {slayerMasters} from "../../lib/slayer/slayerMasters";
 import {boostCannon, boostCannonMulti, boostIceBarrage, boostIceBurst} from "../../lib/minions/data/combatConstants";
-import {production} from "../../config.example";
 
 function applySkillBoostJr(
 	user: KlasaUser,
@@ -49,21 +48,19 @@ export default class extends BotCommand {
 			usageDelim: ' ',
 			description: 'Sends your minion to kill monsters.'
 		});
+		this.enabled = !this.client.production;
 	}
 
 	@requiresMinion
 	@minionNotBusy
 	async run(msg: KlasaMessage, [option = '']: [null | number | string, string]) {
-		if (production) {
-			return msg.channel.send('This command currently not enabled');
-		}
 		if (option !== '') {
 			return msg.channel.send('No options accepted at this time');
 		}
 
 		// Start sim code
 		const simTable: string[][] = [];
-		simTable.push(['Master', 'Monster', 'Food/hr', 'Sharks/hr', 'Kills/hr', 'SlayerXP/hr','Cannon','MCannon','Burst','Barrage', 'Boost MSG']);
+		simTable.push(['Master', 'Monster', 'Food/hr', 'Sharks/hr', 'Kills/hr', 'SlayerXP/hr','Cannon', 'KPH', 'MCannon', 'KPH', 'Burst', 'KPH', 'Barrage', 'KPH', 'Boost MSG']);
 
 		slayerMasters.forEach(master => {
 			master.tasks.forEach(task => {
@@ -75,7 +72,7 @@ export default class extends BotCommand {
 					});
 					let [killTime, percentReduced] = reducedTimeFromKC(
 						kMonster!,
-						10000
+						1000000
 					);
 					const [newDuration, boostMsg] = applySkillBoostJr(msg.author, killTime, attackStyles);
 					const mSlayerXP = osjsMon?.data?.hitpoints ?
@@ -86,26 +83,30 @@ export default class extends BotCommand {
 
 					// add boosts
 					let cannonXP = '';
+					let killsPerHourCannon = 0;
 					let cannonMXP = '';
+					let killsPerHourCannonM = 0;
 					let barrageXP = '';
+					let killsPerHourBarrage = 0;
 					let burstXP = '';
+					let killsPerHourBurst = 0;
 					if (kMonster?.canCannon) {
 						if (kMonster?.cannonMulti) {
 							const tmpNewDuration = newDuration * (1 - boostCannonMulti/100);
-							const killsPerHour = Time.Hour / tmpNewDuration;
-							cannonMXP = (killsPerHour * mSlayerXP).toLocaleString();
+							killsPerHourCannonM = Time.Hour / tmpNewDuration;
+							cannonMXP = (killsPerHourCannonM * mSlayerXP).toLocaleString();
 						} else {
 							const tmpNewDuration = newDuration * (1 - boostCannon/100);
-							const killsPerHour = Time.Hour / tmpNewDuration;
-							cannonXP = (killsPerHour * mSlayerXP).toLocaleString();
+							killsPerHourCannon = Time.Hour / tmpNewDuration;
+							cannonXP = (killsPerHourCannon * mSlayerXP).toLocaleString();
 						}
 					}
 					if (kMonster?.canBarrage) {
 						const tmpBarrageDuration = newDuration * (1 - boostIceBarrage/100);
-						const killsPerHour = Time.Hour / tmpBarrageDuration;
-						barrageXP = (killsPerHour * mSlayerXP).toLocaleString();
+						killsPerHourBarrage = Time.Hour / tmpBarrageDuration;
+						barrageXP = (killsPerHourBarrage * mSlayerXP).toLocaleString();
 						const tmpBurstDuration = newDuration * (1 - boostIceBurst/100);
-						const killsPerHourBurst = Time.Hour / tmpBurstDuration;
+						killsPerHourBurst = Time.Hour / tmpBurstDuration;
 						burstXP = (killsPerHourBurst * mSlayerXP).toLocaleString();
 					}
 
@@ -116,7 +117,8 @@ export default class extends BotCommand {
 					const foodPerHour = calculateMonsterFood(kMonster!, msg.author)[0] * killsPerHour;
 					simTable.push([master!.name, kMonster!.name, Math.round(foodPerHour).toLocaleString(),
 						Math.ceil(foodPerHour / 20).toLocaleString(), Math.floor(killsPerHour).toString(),
-						slayerXpPerHour, cannonXP, cannonMXP, burstXP, barrageXP, `${percentReduced}% for KC, ${boostMsg}`]);
+						slayerXpPerHour, cannonXP, killsPerHourCannon, cannonMXP, killsPerHourCannonM,  burstXP,
+						killsPerHourBurst, barrageXP, killsPerHourBarrage, `${percentReduced}% for KC, ${boostMsg}`]);
 				});
 			});
 		});
