@@ -117,8 +117,8 @@ export default class extends BotCommand {
 					const foodPerHour = calculateMonsterFood(kMonster!, msg.author)[0] * killsPerHour;
 					simTable.push([master!.name, kMonster!.name, Math.round(foodPerHour).toLocaleString(),
 						Math.ceil(foodPerHour / 20).toLocaleString(), Math.floor(killsPerHour).toString(),
-						slayerXpPerHour, cannonXP, killsPerHourCannon, cannonMXP, killsPerHourCannonM,  burstXP,
-						killsPerHourBurst, barrageXP, killsPerHourBarrage, `${percentReduced}% for KC, ${boostMsg}`]);
+						slayerXpPerHour, cannonXP, killsPerHourCannon.toLocaleString(), cannonMXP, killsPerHourCannonM.toLocaleString(),  burstXP,
+						killsPerHourBurst.toLocaleString(), barrageXP, killsPerHourBarrage.toLocaleString(), `${percentReduced}% for KC, ${boostMsg}`]);
 				});
 			});
 		});
