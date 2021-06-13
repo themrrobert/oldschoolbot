@@ -40,7 +40,8 @@ import { SlayerTaskUnlocksEnum } from '../../lib/slayer/slayerUnlocks';
 import { determineBoostChoice, getUsersCurrentSlayerInfo } from '../../lib/slayer/slayerUtil';
 import { BotCommand } from '../../lib/structures/BotCommand';
 import { MonsterActivityTaskOptions } from '../../lib/types/minions';
-import findMonster, {
+import { findMonster } from '../../lib/util/findMonster';
+import {
 	addArrayOfNumbers,
 	formatDuration,
 	isWeekend,

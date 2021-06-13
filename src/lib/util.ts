@@ -21,8 +21,6 @@ import {
 } from './constants';
 import { hasItemEquipped } from './gear';
 import { GearSetupTypes } from './gear/types';
-import killableMonsters from './minions/data/killableMonsters';
-import { KillableMonster } from './minions/types';
 import { ArrayItemsResolved, ItemTuple, Skills } from './types';
 import { GroupMonsterActivityTaskOptions } from './types/minions';
 import itemID from './util/itemID';
