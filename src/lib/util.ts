@@ -424,13 +424,6 @@ export function skillsMeetRequirements(skills: Skills, requirements: Skills) {
 	return true;
 }
 
-export default function findMonster(str: string): KillableMonster | undefined {
-	const mon = killableMonsters.find(
-		mon => stringMatches(mon.name, str) || mon.aliases.some(alias => stringMatches(alias, str))
-	);
-	return mon;
-}
-
 export function formatItemReqs(items: ArrayItemsResolved) {
 	const str = [];
 	for (const item of items) {

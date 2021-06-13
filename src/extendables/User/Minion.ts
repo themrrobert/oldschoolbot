@@ -841,7 +841,7 @@ export default class extends Extendable {
 				userID: this.id,
 				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 				// @ts-ignore
-				skill: skillName,
+				skill: params.skillName,
 				xp: params.amount
 			});
 		}
