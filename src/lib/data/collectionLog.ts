@@ -1924,7 +1924,6 @@ export const miscLog: CollectionLogData = {
 	]),
 	Misc2: resolveItems(['Giant key', 'Hill giant club', 'Mossy key', "Bryophyta's essence"])
 };
-/*
 export const customBossLog: CollectionLogData = {
 	'King Goldmar': resolveItems([
 		'Broken dwarven warhammer',
@@ -1937,7 +1936,6 @@ export const customBossLog: CollectionLogData = {
 	nex1: [...torvaOutfit, ...pernixOutfit],
 	nex2: [...virtusOutfit, ...ancientWeapons]
 };
-*/
 export const sepulchreLog: CollectionLogData = {
 	Misc: resolveItems([
 		'Hallowed mark',
@@ -2192,14 +2190,11 @@ export const collectionLogTypes: CollectionLogType[] = [
 		aliases: ['misc'],
 		items: miscLog
 	},
-	/*
 	{
 		name: 'Custom Bosses',
 		aliases: ['custom boss', 'custom bosses'],
 		items: customBossLog
 	},
-	*/
-
 	{
 		name: 'Nightmare',
 		aliases: ['nightmare', 'the nightmare'],
