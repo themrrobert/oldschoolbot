@@ -917,8 +917,7 @@ const Buyables: Buyable[] = [
 	...canifisClothes,
 	...castleWarsBuyables,
 	...cmCapes,
-	...slayerBuyables
-	...cmCapes,
+	...slayerBuyables,
 	{
 		name: 'Master quest cape',
 		outputItems: resolveNameBank({
