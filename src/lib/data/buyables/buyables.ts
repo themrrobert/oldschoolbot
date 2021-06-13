@@ -925,7 +925,7 @@ const Buyables: Buyable[] = [
 		}),
 		gpCost: 1_000_000_000,
 		qpRequired: 5000
-	},
+	}
 ];
 
 for (const [chompyHat, qty] of chompyHats) {

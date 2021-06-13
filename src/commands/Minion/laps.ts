@@ -137,7 +137,7 @@ export default class extends BotCommand {
 			course.name
 		} laps, it'll take around ${formatDuration(duration)} to finish.`;
 
-		const alchResult = alching(msg, duration);
+		const alchResult = alching(msg.author, duration);
 		if (alchResult !== null) {
 			if (course.name === 'Ape Atoll Agility Course') {
 				return msg.channel.send(

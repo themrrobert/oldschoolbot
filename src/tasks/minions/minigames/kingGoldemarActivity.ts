@@ -92,7 +92,7 @@ export default class extends Task {
 			await addMonsterXP(user, {
 				monsterID: KingGoldemar.id,
 				quantity: 1,
-				duration: duration,
+				duration,
 				isOnTask: false,
 				taskQuantity: null
 			});

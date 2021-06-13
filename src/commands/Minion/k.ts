@@ -322,7 +322,6 @@ export default class extends BotCommand {
 			quantity = Math.min(quantity, effectiveQtyRemaining);
 		}
 
-
 		let duration = timeToFinish * quantity;
 		// If you have dwarven blessing, you need 1 prayer pot per 5 mins
 		const prayerPots = msg.author.bank().amount('Prayer potion(4)');

@@ -793,7 +793,9 @@ export default class extends Extendable {
 		let gorajanBoost = false;
 		const gorajanMeleeBoost =
 			params.multiplier &&
-			[SkillsEnum.Attack, SkillsEnum.Strength, SkillsEnum.Defence].includes(params.skillName) &&
+			[SkillsEnum.Attack, SkillsEnum.Strength, SkillsEnum.Defence].includes(
+				params.skillName
+			) &&
 			hasArrayOfItemsEquipped(gorajanWarriorOutfit, this.getGear('melee'));
 		const gorajanRangeBoost =
 			params.multiplier &&
@@ -875,11 +877,11 @@ export default class extends Extendable {
 					};`
 				);
 
-			let str = `${skill.emoji} **${this.username}'s** minion, ${
-				this.minionName
-			}, just achieved level 99 in ${skillNameCased}! They are the ${formatOrdinal(
-				parseInt(usersWith.count) + 1
-			)} to get 99 ${skillNameCased}.`;
+				let str = `${skill.emoji} **${this.username}'s** minion, ${
+					this.minionName
+				}, just achieved level 99 in ${skillNameCased}! They are the ${formatOrdinal(
+					parseInt(usersWith.count) + 1
+				)} to get 99 ${skillNameCased}.`;
 
 				if (this.isIronman) {
 					const [ironmenWith] = await this.client.query<
@@ -887,9 +889,9 @@ export default class extends Extendable {
 							count: string;
 						}[]
 					>(
-						`SELECT COUNT(*) FROM users WHERE "minion.ironman" = true AND "skills.${params.skillName}" > ${
-							convertLVLtoXP(num) - 1
-						};`
+						`SELECT COUNT(*) FROM users WHERE "minion.ironman" = true AND "skills.${
+							params.skillName
+						}" > ${convertLVLtoXP(num) - 1};`
 					);
 					str += ` They are the ${formatOrdinal(
 						parseInt(ironmenWith.count) + 1
