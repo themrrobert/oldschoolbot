@@ -939,7 +939,7 @@ export default class extends Extendable {
 	}
 
 	public skillLevel(this: User, skillName: SkillsEnum) {
-		return convertXPtoLVL(this.settings.get(`skills.${params.skillName}`) as number, 120);
+		return convertXPtoLVL(this.settings.get(`skills.${skillName}`) as number, 120);
 	}
 
 	public totalLevel(this: User, returnXP = false) {

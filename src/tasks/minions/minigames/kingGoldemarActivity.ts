@@ -89,7 +89,13 @@ export default class extends Task {
 				loot.add('Broken dwarven warhammer');
 			}
 			totalLoot.add(loot);
-			await addMonsterXP(user, KingGoldemar.id, 1, duration, false, null);
+			await addMonsterXP(user, {
+				monsterID: KingGoldemar.id,
+				quantity: 1,
+				duration: duration,
+				isOnTask: false,
+				taskQuantity: null
+			});
 			await user.addItemsToBank(loot, true);
 			resultStr += `\n${user} received ${loot}.`;
 		}

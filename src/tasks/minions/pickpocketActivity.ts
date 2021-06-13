@@ -19,8 +19,6 @@ export function calcLootXPPickpocketing(
 	hasThievingCape: boolean,
 	hasDiary: boolean,
 	armband: boolean
-	hasThievingCape: boolean,
-	hasDiary: boolean
 ): [number, number, number, number] {
 	let xpReceived = 0;
 

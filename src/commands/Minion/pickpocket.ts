@@ -49,7 +49,8 @@ export default class extends BotCommand {
 						npc,
 						5 * (Time.Hour / ((npc.customTickRate ?? 2) * 600)),
 						false,
-						(await userhasDiaryTier(msg.author, ArdougneDiary.hard))[0]
+						(await userhasDiaryTier(msg.author, ArdougneDiary.hard))[0],
+						false
 					);
 					results.push([npc.name, round(xpReceived, 2) / 5, damageTaken / 5]);
 				}

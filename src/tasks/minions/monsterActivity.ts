@@ -202,7 +202,7 @@ export default class extends Task {
 					loot.remove(bone.inputId, amount);
 				}
 			}
-			str += await user.addXP(SkillsEnum.Prayer, totalXP, duration);
+			str += await user.addXP({ skillName: SkillsEnum.Prayer, amount: totalXP, duration: duration });
 		}
 
 		if (isOnTask) {

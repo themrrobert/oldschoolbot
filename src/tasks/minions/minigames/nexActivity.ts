@@ -89,11 +89,13 @@ export default class extends Task {
 			if (kcAmounts[user.id]) {
 				await addMonsterXP(
 					user,
-					46274,
-					Math.ceil(quantity / users.length),
-					duration,
-					false,
-					null
+					{
+						monsterID: 46274,
+						quantity: Math.ceil(quantity / users.length),
+						duration: duration,
+						isOnTask: false,
+						taskQuantity: null
+					}
 				);
 			}
 			totalLoot.add(loot);
