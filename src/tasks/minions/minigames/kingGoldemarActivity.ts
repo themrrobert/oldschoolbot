@@ -1,8 +1,8 @@
-import { percentChance, randArrItem, reduceNumByPercent } from 'e';
+import { percentChance, randArrItem } from 'e';
 import { KlasaUser, Task } from 'klasa';
 import { Bank } from 'oldschooljs';
 
-import { gpCostPerKill } from '../../../commands/bso/kinggoldemar';
+import { gpCostPerKill } from "../../../lib/structures/Boss";
 import { Emoji, Events } from '../../../lib/constants';
 import KingGoldemar, {
 	KingGoldemarLootTable
@@ -12,6 +12,7 @@ import { ClientSettings } from '../../../lib/settings/types/ClientSettings';
 import { NewBossOptions } from '../../../lib/types/minions';
 import { formatDuration, roll, toKMB, updateBankSetting } from '../../../lib/util';
 import { sendToChannelID } from '../../../lib/util/webhook';
+import { calcDwwhChance } from "../../../lib/structures/Boss";
 
 const methodsOfDeath = [
 	'Beheaded',
@@ -23,21 +24,6 @@ const methodsOfDeath = [
 	'Stabbed in neck',
 	'Fell into a lava fountain'
 ];
-
-export const calcDwwhChance = (users: KlasaUser[]) => {
-	const size = Math.min(users.length, 10);
-	const baseRate = 850;
-	const modDenominator = 15;
-
-	let dropRate = (baseRate / 2) * (1 + size / modDenominator);
-	let groupRate = Math.ceil(dropRate / size);
-	groupRate = Math.ceil(groupRate);
-
-	if (users.some(u => u.getGear('melee').hasEquipped('Ring of luck'))) {
-		groupRate = Math.floor(reduceNumByPercent(groupRate, 15));
-	}
-	return groupRate;
-};
 
 export default class extends Task {
 	async run({ channelID, users: idArr, duration, bossUsers }: NewBossOptions) {
