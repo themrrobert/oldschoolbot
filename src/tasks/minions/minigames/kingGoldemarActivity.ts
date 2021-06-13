@@ -2,17 +2,16 @@ import { percentChance, randArrItem } from 'e';
 import { KlasaUser, Task } from 'klasa';
 import { Bank } from 'oldschooljs';
 
-import { gpCostPerKill } from "../../../lib/structures/Boss";
 import { Emoji, Events } from '../../../lib/constants';
 import KingGoldemar, {
 	KingGoldemarLootTable
 } from '../../../lib/minions/data/killableMonsters/custom/KingGoldemar';
 import { addMonsterXP } from '../../../lib/minions/functions';
 import { ClientSettings } from '../../../lib/settings/types/ClientSettings';
+import { calcDwwhChance, gpCostPerKill } from '../../../lib/structures/Boss';
 import { NewBossOptions } from '../../../lib/types/minions';
 import { formatDuration, roll, toKMB, updateBankSetting } from '../../../lib/util';
 import { sendToChannelID } from '../../../lib/util/webhook';
-import { calcDwwhChance } from "../../../lib/structures/Boss";
 
 const methodsOfDeath = [
 	'Beheaded',

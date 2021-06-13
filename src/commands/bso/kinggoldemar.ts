@@ -11,7 +11,6 @@ import { BotCommand } from '../../lib/structures/BotCommand';
 import { Gear } from '../../lib/structures/Gear';
 import { formatDuration, toKMB } from '../../lib/util';
 
-
 export const kgBaseTime = Time.Minute * 45;
 
 export default class extends BotCommand {
