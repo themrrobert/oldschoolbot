@@ -16,6 +16,7 @@ import {
 	addBanks,
 	bankHasAllItemsFromBank,
 	formatDuration,
+	itemID,
 	rogueOutfitPercentBonus,
 	round,
 	stringMatches
@@ -148,7 +149,8 @@ export default class extends BotCommand {
 			msg.author.hasItemEquippedAnywhere(itemID('Thieving cape')) ||
 				msg.author.hasItemEquippedAnywhere(itemID('Thieving cape(t)')) ||
 				msg.author.hasItemEquippedAnywhere(itemID('Thieving master cape')),
-			msg.author.hasItemEquippedOrInBank("Thieves' armband")
+				hasArdyHard,
+				msg.author.hasItemEquippedOrInBank("Thieves' armband")
 		);
 
 		const [foodString, foodRemoved] = await removeFoodFromUser({
@@ -159,8 +161,6 @@ export default class extends BotCommand {
 			activityName: 'Pickpocketing',
 			attackStylesUsed: []
 		});
-
-		const boosts = [];
 
 		if (rogueOutfitPercentBonus(msg.author) > 0) {
 			boosts.push(

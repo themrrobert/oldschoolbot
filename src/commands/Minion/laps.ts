@@ -26,7 +26,7 @@ const unlimitedFireRuneProviders = [
 	'Tome of fire'
 ];
 
-function alching(msg: KlasaMessage, tripLength: number) {
+export function alching(msg: KlasaMessage, tripLength: number) {
 	if (msg.author.skillLevel(SkillsEnum.Magic) < 55) return null;
 	const bank = msg.author.bank();
 	const favAlchables = msg.author.settings

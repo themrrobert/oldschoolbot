@@ -1925,6 +1925,19 @@ export const miscLog: CollectionLogData = {
 	Misc2: resolveItems(['Giant key', 'Hill giant club', 'Mossy key', "Bryophyta's essence"])
 };
 
+export const customBossLog: CollectionLogData = {
+	'King Goldmar': resolveItems([
+		'Broken dwarven warhammer',
+		'Dwarven ore',
+		'Dwarven crate',
+		'Athelas seed'
+	]),
+	Malygos: resolveItems(['Abyssal thread', 'Abyssal cape', 'Dragon hunter lance', 'Ori']),
+	KK: allKalphiteKingItems,
+	nex1: [...torvaOutfit, ...pernixOutfit],
+	nex2: [...virtusOutfit, ...ancientWeapons]
+};
+
 export const sepulchreLog: CollectionLogData = {
 	Misc: resolveItems([
 		'Hallowed mark',
