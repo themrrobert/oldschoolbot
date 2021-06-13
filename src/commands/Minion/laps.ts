@@ -1,4 +1,4 @@
-import { CommandStore, KlasaMessage } from 'klasa';
+import { CommandStore, KlasaMessage, KlasaUser } from 'klasa';
 import { Bank } from 'oldschooljs';
 
 import { Activity, Time } from '../../lib/constants';
@@ -26,19 +26,16 @@ const unlimitedFireRuneProviders = [
 	'Tome of fire'
 ];
 
-export function alching(msg: KlasaMessage, tripLength: number) {
-	if (msg.author.skillLevel(SkillsEnum.Magic) < 55) return null;
-	const bank = msg.author.bank();
-	const favAlchables = msg.author.settings
+export function alching(user: KlasaUser, tripLength: number) {
+	if (user.skillLevel(SkillsEnum.Magic) < 55) return null;
+	const bank = user.bank();
+	const favAlchables = user.settings
 		.get(UserSettings.FavoriteAlchables)
 		.filter(id => bank.has(id))
 		.map(getOSItem)
 		.filter(i => i.highalch > 0)
 		.sort((a, b) => b.highalch - a.highalch);
 
-	if (!msg.flagArgs.alch) {
-		return null;
-	}
 	if (favAlchables.length === 0) {
 		return null;
 	}
@@ -49,7 +46,7 @@ export function alching(msg: KlasaMessage, tripLength: number) {
 	const nats = bank.amount('Nature rune');
 	const fireRunes = bank.amount('Fire rune');
 
-	const hasInfiniteFireRunes = msg.author.hasItemEquippedAnywhere(unlimitedFireRuneProviders);
+	const hasInfiniteFireRunes = user.hasItemEquippedAnywhere(unlimitedFireRuneProviders);
 
 	let maxCasts = Math.floor(tripLength / (Time.Second * (3 + 10)));
 	maxCasts = Math.min(alchItemQty, maxCasts);
