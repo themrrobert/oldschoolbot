@@ -2,6 +2,8 @@ import { Monsters } from 'oldschooljs';
 
 import { AssignableSlayerTask } from '../types';
 import { bossTasks } from './bossTasks';
+import AbyssalDragon from "../../minions/data/killableMonsters/custom/AbyssalDragon";
+import SeaKraken from "../../minions/data/killableMonsters/custom/SeaKraken";
 
 export const nieveTasks: AssignableSlayerTask[] = [
 	{
@@ -127,7 +129,7 @@ export const nieveTasks: AssignableSlayerTask[] = [
 		monster: Monsters.CaveKraken,
 		amount: [100, 120],
 		weight: 6,
-		monsters: [Monsters.CaveKraken.id, Monsters.Kraken.id],
+		monsters: [Monsters.CaveKraken.id, Monsters.Kraken.id, SeaKraken.id],
 		combatLevel: 80,
 		slayerLevel: 87,
 		unlocked: true
@@ -321,7 +323,7 @@ export const nieveTasks: AssignableSlayerTask[] = [
 		monster: Monsters.RedDragon,
 		amount: [30, 80],
 		weight: 5,
-		monsters: [Monsters.RedDragon.id, Monsters.BabyRedDragon.id, Monsters.BrutalRedDragon.id],
+		monsters: [Monsters.RedDragon.id, Monsters.BabyRedDragon.id, Monsters.BrutalRedDragon.id, AbyssalDragon.id],
 		questPoints: 34,
 		unlocked: false
 	},
@@ -354,6 +356,20 @@ export const nieveTasks: AssignableSlayerTask[] = [
 	},
 	{
 		monster: Monsters.SpiritualMage,
+		amount: [130, 200],
+		weight: 7,
+		monsters: [Monsters.SpiritualRanger.id, Monsters.SpiritualWarrior.id, Monsters.SpiritualMage.id],
+		levelRequirements: {
+			slayer: 60
+		},
+		combatLevel: 60,
+		slayerLevel: 63,
+		questPoints: 3,
+		unlocked: true,
+		dontAssign: true
+	},
+	{
+		monster: Monsters.SpiritualRanger,
 		amount: [120, 185],
 		weight: 6,
 		monsters: [Monsters.SpiritualRanger.id, Monsters.SpiritualWarrior.id, Monsters.SpiritualMage.id],

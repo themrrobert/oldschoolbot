@@ -14,6 +14,8 @@ export interface AssignableSlayerTask {
 	unlocked?: boolean;
 	isBoss?: boolean;
 	levelRequirements?: LevelRequirements;
+	// For changing the base task, otherwise it will cause db error
+	dontAssign?: boolean;
 }
 
 export interface SlayerMaster {

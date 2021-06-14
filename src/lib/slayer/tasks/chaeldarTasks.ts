@@ -2,6 +2,7 @@ import { Monsters } from 'oldschooljs';
 
 import { AssignableSlayerTask } from '../types';
 import { bossTasks } from './bossTasks';
+import SeaKraken from "../../minions/data/killableMonsters/custom/SeaKraken";
 
 export const chaeldarTasks: AssignableSlayerTask[] = [
 	{
@@ -125,7 +126,7 @@ export const chaeldarTasks: AssignableSlayerTask[] = [
 		monster: Monsters.CaveKraken,
 		amount: [30, 50],
 		weight: 12,
-		monsters: [Monsters.CaveKraken.id, Monsters.Kraken.id],
+		monsters: [Monsters.CaveKraken.id, Monsters.Kraken.id, SeaKraken.id],
 		combatLevel: 80,
 		slayerLevel: 87,
 		unlocked: true
@@ -425,6 +426,20 @@ export const chaeldarTasks: AssignableSlayerTask[] = [
 	},
 	{
 		monster: Monsters.SpiritualMage,
+		amount: [130, 200],
+		weight: 7,
+		monsters: [Monsters.SpiritualRanger.id, Monsters.SpiritualWarrior.id, Monsters.SpiritualMage.id],
+		levelRequirements: {
+			slayer: 60
+		},
+		combatLevel: 60,
+		slayerLevel: 63,
+		questPoints: 3,
+		unlocked: true,
+		dontAssign: true
+	},
+	{
+		monster: Monsters.SpiritualRanger,
 		amount: [110, 170],
 
 		weight: 12,

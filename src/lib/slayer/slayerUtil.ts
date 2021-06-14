@@ -101,8 +101,14 @@ export function userCanUseMaster(user: KlasaUser, master: SlayerMaster) {
 	);
 }
 
-export function userCanUseTask(user: KlasaUser, task: AssignableSlayerTask, master: SlayerMaster) {
-	if (task.isBoss) return false;
+export function userCanUseTask(
+	user: KlasaUser,
+	task: AssignableSlayerTask,
+	master: SlayerMaster,
+	allowBossTasks: boolean = false // This is basically, 'are we vetting boss tasks'
+) {
+	if (task.isBoss && !allowBossTasks) return false;
+	if (task.dontAssign) return false;
 	const myLastTask = user.settings.get(UserSettings.Slayer.LastTask);
 	if (myLastTask === task.monster.id) return false;
 	if (task.combatLevel && task.combatLevel > user.combatLevel) return false;
@@ -152,18 +158,29 @@ export async function assignNewSlayerTask(_user: KlasaUser, master: SlayerMaster
 		bossTask = true;
 	}
 
-	const assignedTask = bossTask ? weightedPick(bossTasks) : weightedPick(baseTasks);
+	let assignedTask: AssignableSlayerTask | null = null;
+	if (bossTask) {
+		const baseBossTasks = bossTasks.filter(t => userCanUseTask(_user, t, master));
+		if (baseBossTasks.length) {
+			assignedTask = weightedPick(baseBossTasks);
+		} else {
+			assignedTask = weightedPick(baseTasks);
+		}
+	} else {
+		assignedTask = weightedPick(baseTasks);
+	}
+
 	const newUser = await getNewUser(_user.id);
 
 	const currentTask = new SlayerTaskTable();
 	currentTask.user = newUser;
-	currentTask.quantity = randInt(assignedTask.amount[0], assignedTask.amount[1]);
+	currentTask.quantity = randInt(assignedTask!.amount[0], assignedTask!.amount[1]);
 	currentTask.quantityRemaining = currentTask.quantity;
 	currentTask.slayerMasterID = master.id;
-	currentTask.monsterID = assignedTask.monster.id;
+	currentTask.monsterID = assignedTask!.monster.id;
 	currentTask.skipped = false;
 	await currentTask.save();
-	await _user.settings.update(UserSettings.Slayer.LastTask, assignedTask.monster.id);
+	await _user.settings.update(UserSettings.Slayer.LastTask, assignedTask!.monster.id);
 
 	return { currentTask, assignedTask };
 }
@@ -191,6 +208,9 @@ export function getCommonTaskName(task: Monster) {
 			commonName = 'Elves';
 			break;
 		case Monsters.SpiritualMage.id:
+			commonName = 'Spiritual Creature';
+			break;
+		case Monsters.SpiritualRanger.id:
 			commonName = 'Spiritual Creature';
 			break;
 		case Monsters.BlackBear.id:
