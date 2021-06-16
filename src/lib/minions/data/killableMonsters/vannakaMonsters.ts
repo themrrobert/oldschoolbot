@@ -338,7 +338,7 @@ export const vannakaMonsters: KillableMonster[] = [
 		id: Monsters.Dagannoth.id,
 		name: Monsters.Dagannoth.name,
 		aliases: Monsters.Dagannoth.aliases,
-		timeToFinish: Time.Second * 16,
+		timeToFinish: Time.Second * 14.5,
 		table: Monsters.Dagannoth,
 
 		wildy: false,
