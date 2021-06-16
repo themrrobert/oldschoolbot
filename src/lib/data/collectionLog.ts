@@ -1601,7 +1601,6 @@ export const slayerLog: CollectionLogData = {
 		"Hydra's heart",
 		'Hydra tail',
 		"Drake's tooth",
-		'Basilisk jaw',
 		"Drake's claw",
 		'Dragon harpoon'
 	]),
@@ -1657,7 +1656,6 @@ export const slayerLog: CollectionLogData = {
 		'Dragon metal slice',
 		'Dragon metal lump',
 		'Draconic visage',
-		'Skeletal visage',
 		'Wyvern visage'
 	]),
 	Misc2: resolveItems([
@@ -1687,7 +1685,7 @@ export const slayerLog: CollectionLogData = {
 		'Enhanced crystal teleport seed'
 	]),
 	Heads: resolveItems([
-		'Crawling hand',
+		7975,
 		'Basilisk head',
 		'Cockatrice head',
 		'Kurask head',
