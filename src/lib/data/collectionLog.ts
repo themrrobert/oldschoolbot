@@ -1595,24 +1595,25 @@ export const slayerLog: CollectionLogData = {
 		'Eternal gem',
 		'Mist battlestaff',
 		'Dust battlestaff',
+		'Basilisk jaw',
 		"Hydra's eye",
 		"Hydra's fang",
 		"Hydra's heart",
 		'Hydra tail',
 		"Drake's tooth",
+		'Basilisk jaw',
 		"Drake's claw",
-		'Dragon harpoon',
-		'Dragon sword'
+		'Dragon harpoon'
 	]),
 	Slayer2: resolveItems([
+		'Dragon sword',
 		'Dragon thrownaxe',
 		'Dragon knife',
+		'Black mask',
+		'Granite maul',
 		'Abyssal whip',
 		'Abyssal dagger',
-		'Abyssal head',
-		'Granite maul',
 		'Uncharged trident',
-		'Trident of the seas (full)',
 		'Kraken tentacle',
 		'Dark bow',
 		'Death talisman',
@@ -1621,21 +1622,9 @@ export const slayerLog: CollectionLogData = {
 	Slayer3: resolveItems([
 		'Herb sack',
 		'Rune pouch',
-		'Basilisk jaw',
 		'Brine sabre',
 		'Leaf-bladed battleaxe',
-		'Leaf-bladed sword',
-		'Black mask',
-		'Dragon boots',
-		'Dark bow'
-	]),
-	'Demonic Gorillas': resolveItems([
-		'Zenyte shard',
-		'Heavy frame',
-		'Light frame',
-		'Monkey tail',
-		'Ballista limbs',
-		'Ballista spring'
+		'Leaf-bladed sword'
 	]),
 	'Mystic Sets': resolveItems([
 		'Mystic hat (light)',
@@ -1689,6 +1678,7 @@ export const slayerLog: CollectionLogData = {
 		'Dark totem top',
 		'Dark totem',
 		'Ancient shard',
+		'Brittle key',
 		'Giant key',
 		'Hill giant club',
 		'Mossy key',
@@ -1701,11 +1691,7 @@ export const slayerLog: CollectionLogData = {
 		'Basilisk head',
 		'Cockatrice head',
 		'Kurask head',
-		'Kq head',
-		"Vorkath's head",
-		'Kbd heads',
-		'Abyssal head',
-		'Alchemical hydra heads'
+		'Abyssal head'
 	]),
 	Boots: resolveItems([
 		'Bronze boots',
@@ -1716,6 +1702,14 @@ export const slayerLog: CollectionLogData = {
 		'Adamant boots',
 		'Rune boots',
 		'Dragon boots'
+	]),
+	'Demonic Gorillas': resolveItems([
+		'Zenyte shard',
+		'Heavy frame',
+		'Light frame',
+		'Monkey tail',
+		'Ballista limbs',
+		'Ballista spring'
 	])
 };
 export const sepulchreLog: CollectionLogData = {
