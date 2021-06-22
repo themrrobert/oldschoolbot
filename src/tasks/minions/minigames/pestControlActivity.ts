@@ -1,31 +1,22 @@
-import { KlasaUser } from 'klasa';
-import { Task } from 'klasa';
+import { KlasaUser, Task } from 'klasa';
+
 import { canUseIntermediateLander, canUseVeteranLander } from '../../../commands/Minion/pestcontrol';
-
-
 import { UserSettings } from '../../../lib/settings/types/UserSettings';
 import { PestControlOptions } from '../../../lib/types/minions';
 import { noOp } from '../../../lib/util';
 import { sendToChannelID } from '../../../lib/util/webhook';
 
-function canUseNoviceLander(user: KlasaUser): boolean {
-	return user.combatLevel >= 40;
-}
+function calcPoints(user: KlasaUser) {
+	let base = 3;
 
-function calcPoints() {
-	let base = 5;
-
-	if (!canUseNoviceLander) {
+	if (canUseIntermediateLander(user)) {
 		base = 4;
 	}
-	if (!canUseIntermediateLander) {
-		base = 4;
-	} 
-	 if (!canUseVeteranLander) {
-		base = 4;
+	if (canUseVeteranLander(user)) {
+		base = 5;
 	}
-	
-	return Math.ceil(base);
+
+	return base;
 }
 
 export default class extends Task {
@@ -39,12 +30,12 @@ export default class extends Task {
 
 			let points = 0;
 			for (let i = 0; i < quantity; i++) {
-				points += calcPoints();
+				points += calcPoints(user);
 			}
 
 			await user.settings.update(
 				UserSettings.Commendation,
-				user.settings.get(UserSettings.Commendation) + points
+				(user.settings.get(UserSettings.Commendation) as number) + points
 			);
 
 			user.incrementMinigameScore('PestControl', quantity);
