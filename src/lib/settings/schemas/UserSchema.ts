@@ -28,6 +28,7 @@ Client.defaultUserSchema
 	.add('github_id', 'integer', { default: null })
 	.add('carpenter_points', 'integer', { default: 0 })
 	.add('zeal_tokens', 'integer', { default: 0 })
+	.add('commendation', 'integer', { default: 0 })
 	.add('openable_scores', 'any', { default: {} })
 	.add('attack_style', 'string', { array: true, default: [] })
 	.add('total_cox_points', 'integer', { default: 0 })

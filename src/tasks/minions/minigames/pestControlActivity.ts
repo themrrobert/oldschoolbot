@@ -1,20 +1,30 @@
+import { KlasaUser } from 'klasa';
 import { Task } from 'klasa';
 import { canUseIntermediateLander, canUseVeteranLander } from '../../../commands/Minion/pestcontrol';
+
 
 import { UserSettings } from '../../../lib/settings/types/UserSettings';
 import { PestControlOptions } from '../../../lib/types/minions';
 import { noOp } from '../../../lib/util';
 import { sendToChannelID } from '../../../lib/util/webhook';
 
+function canUseNoviceLander(user: KlasaUser): boolean {
+	return user.combatLevel >= 40;
+}
 
 function calcPoints() {
 	let base = 5;
+
+	if (!canUseNoviceLander) {
+		base = 4;
+	}
 	if (!canUseIntermediateLander) {
-		base -=1
+		base = 4;
+	} 
+	 if (!canUseVeteranLander) {
+		base = 4;
 	}
-	if (!canUseVeteranLander){
-		base -=1
-	}
+	
 	return Math.ceil(base);
 }
 

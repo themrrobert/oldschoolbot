@@ -1,16 +1,14 @@
-import { KlasaUser } from 'klasa';
-import { CommandStore, KlasaMessage } from 'klasa';
+import { CommandStore, KlasaMessage, KlasaUser } from 'klasa';
 
 import { Activity, Emoji, Time } from '../../lib/constants';
 import { minionNotBusy, requiresMinion } from '../../lib/minions/decorators';
 import { UserSettings } from '../../lib/settings/types/UserSettings';
 import { BotCommand } from '../../lib/structures/BotCommand';
 import { MakePartyOptions } from '../../lib/types';
-import { SoulWarsOptions } from '../../lib/types/minions';
-import { formatDuration, randomVariation, stringMatches, skillsMeetRequirements } from '../../lib/util';
+import { PestControlOptions } from '../../lib/types/minions';
+import { formatDuration, randomVariation, stringMatches } from '../../lib/util';
 import addSubTaskToActivityTask from '../../lib/util/addSubTaskToActivityTask';
 import getOSItem from '../../lib/util/getOSItem';
-
 
 const buyables = [
 	{
@@ -40,24 +38,19 @@ const buyables = [
 	{
 		item: getOSItem('Void ranger helm'),
 		commendation: 200
-	},
+	}
 ];
+
 function canUseNoviceLander(user: KlasaUser): boolean {
-	return skillsMeetRequirements(user.rawSkills, {
-	
-	});
+	return user.combatLevel >= 40;
 }
 
 export function canUseIntermediateLander(user: KlasaUser): boolean {
-	return skillsMeetRequirements(user.rawSkills, {
-		
-	});
+	return user.combatLevel >= 70;
 }
 
 export function canUseVeteranLander(user: KlasaUser): boolean {
-	return skillsMeetRequirements(user.rawSkills, {
-		
-	});
+	return user.combatLevel >= 100;
 }
 
 export default class extends BotCommand {
@@ -92,7 +85,7 @@ export default class extends BotCommand {
 				if (user.minionIsBusy) {
 					return [true, 'your minion is busy.'];
 				}
-				if (!canUseNoviceLander){
+				if (!canUseNoviceLander) {
 					return [true, "you don't have a combat level of atleast 40."];
 				}
 
@@ -101,9 +94,7 @@ export default class extends BotCommand {
 		};
 
 		const users =
-			input === 'solo'
-				? [msg.author]
-				: (await msg.makePartyAwaiter(partyOptions)).filter(u => !u.minionIsBusy);
+			input === 'solo' ? [msg.author] : (await msg.makePartyAwaiter(partyOptions)).filter(u => !u.minionIsBusy);
 		if (users.length === 0) {
 			return;
 		}
@@ -112,7 +103,7 @@ export default class extends BotCommand {
 		const quantity = Math.floor(msg.author.maxTripLength(Activity.SoulWars) / perDuration);
 		const duration = quantity * perDuration;
 
-		await addSubTaskToActivityTask<SoulWarsOptions>(this.client, {
+		await addSubTaskToActivityTask<PestControlOptions>({
 			userID: msg.author.id,
 			channelID: msg.channel.id,
 			quantity,
@@ -154,6 +145,4 @@ export default class extends BotCommand {
 			`Added 1x ${item.item.name} to your bank, removed ${item.commendation}x Commendations.`
 		);
 	}
-
-	
 }

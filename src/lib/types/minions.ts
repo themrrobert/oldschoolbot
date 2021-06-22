@@ -300,6 +300,11 @@ export interface BlastFurnaceActivityTaskOptions extends ActivityTaskOptions {
 	quantity: number;
 }
 
+export interface PestControlOptions extends ActivityTaskOptions {
+	leader: string;
+	users: string[];
+	quantity: number;
+}
 export type ActivityTaskData =
 	| ActivityTaskOptions
 	| MonsterActivityTaskOptions

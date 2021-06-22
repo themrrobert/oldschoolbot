@@ -42,6 +42,7 @@ export namespace UserSettings {
 	export const GithubID = T<number | null>('github_id');
 	export const CarpenterPoints = T<number>('carpenter_points');
 	export const ZealTokens = T<number>('zeal_tokens');
+	export const Commendation = T<number>('commendation');
 	export const OpenableScores = T<O.Readonly<ItemBank>>('openable_scores');
 	export const AttackStyle = T<readonly SkillsEnum[]>('attack_style');
 	export const TotalCoxPoints = T<number>('total_cox_points');
