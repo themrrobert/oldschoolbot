@@ -78,7 +78,10 @@ export function parseBank({ inputBank, inputStr, flags = {} }: ParseBankOptions)
 		let _bank = new Bank();
 		const strItems = parseStringBank(inputStr);
 		for (const [item, quantity] of strItems) {
-			_bank.add(item.id, !quantity ? inputBank.amount(item.id) : Math.min(quantity, inputBank.amount(item.id)));
+			_bank.add(
+				item.id,
+				!quantity ? inputBank.amount(item.id) : Math.max(0, Math.min(quantity, inputBank.amount(item.id)))
+			);
 		}
 		return _bank;
 	}
