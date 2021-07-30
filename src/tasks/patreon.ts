@@ -80,8 +80,15 @@ export default class PatreonTask extends Task {
 		}
 	}
 
-	async validatePerks(userID: string, shouldHave: PerkTier): Promise<string | null> {
+	async validatePerks(userID: string, shouldHave: PerkTier, applyLinked: boolean = true): Promise<string | null> {
 		const settings = await getUserSettings(userID);
+
+		// Apply perks to linked account:
+		if (applyLinked) {
+			const linkedUser = settings.get(UserSettings.PerksLinkedAccount);
+			if (linkedUser) await this.validatePerks(linkedUser, shouldHave, false);
+		}
+
 		let perkTier: PerkTier | 0 | null = getUsersPerkTier(settings.get(UserSettings.BitField));
 		if (perkTier === 0 || perkTier === PerkTier.One) perkTier = null;
 
@@ -96,7 +103,7 @@ export default class PatreonTask extends Task {
 		return null;
 	}
 
-	async changeTier(userID: string, from: PerkTier, to: PerkTier) {
+	async changeTier(userID: string, from: PerkTier, to: PerkTier, applyLinked: Boolean = true) {
 		const settings = await (this.client.gateways.get('users') as Gateway)!
 			.acquire({
 				id: userID
@@ -104,6 +111,12 @@ export default class PatreonTask extends Task {
 			.sync(true);
 
 		const userBitfield = settings.get(UserSettings.BitField);
+
+		// Apply perks to linked account:
+		if (applyLinked) {
+			const linkedUser = settings.get(UserSettings.PerksLinkedAccount);
+			if (linkedUser) await this.changeTier(linkedUser, from, to, false);
+		}
 
 		const bitFieldToRemove = bitFieldFromPerkTier(from);
 		const bitFieldToAdd = bitFieldFromPerkTier(to);
@@ -123,12 +136,18 @@ export default class PatreonTask extends Task {
 		}
 	}
 
-	async givePerks(userID: string, perkTier: PerkTier) {
+	async givePerks(userID: string, perkTier: PerkTier, applyLinked: boolean = true) {
 		const settings = await (this.client.gateways.get('users') as Gateway)!
 			.acquire({
 				id: userID
 			})
 			.sync(true);
+
+		// Apply to linked user:
+		if (applyLinked) {
+			const linkedUser = settings.get(UserSettings.PerksLinkedAccount);
+			if (linkedUser) await this.givePerks(linkedUser, perkTier, false);
+		}
 
 		const userBadges = settings.get(UserSettings.Badges);
 
@@ -155,12 +174,18 @@ export default class PatreonTask extends Task {
 		} catch (_) {}
 	}
 
-	async removePerks(userID: string) {
+	async removePerks(userID: string, applyLinked: boolean = true) {
 		const settings = await (this.client.gateways.get('users') as Gateway)!
 			.acquire({
 				id: userID
 			})
 			.sync(true);
+
+		// Apply to linked user:
+		if (applyLinked) {
+			const linkedUser = settings.get(UserSettings.PerksLinkedAccount);
+			if (linkedUser) await this.removePerks(linkedUser, false);
+		}
 
 		const userBitfield = settings.get(UserSettings.BitField);
 		const userBadges = settings.get(UserSettings.Badges);

@@ -26,6 +26,7 @@ Client.defaultUserSchema
 	.add('high_gambles', 'integer', { default: 0 })
 	.add('patreon_id', 'string', { default: null })
 	.add('github_id', 'integer', { default: null })
+	.add('perks_linked_account', 'string', { default: null })
 	.add('carpenter_points', 'integer', { default: 0 })
 	.add('zeal_tokens', 'integer', { default: 0 })
 	.add('openable_scores', 'any', { default: {} })

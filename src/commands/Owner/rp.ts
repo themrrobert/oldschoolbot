@@ -174,6 +174,44 @@ ${
 `
 				);
 			}
+			case 'linkperks': {
+				// Accepts only a UserID for str currently.
+				if (!input || !(input instanceof KlasaUser) || !str) return;
+				const klasaUserToLink = await this.client.users.fetch(str);
+				if (!klasaUserToLink) return msg.channel.send(`Unable to fetch user ${str}`);
+				const userOneLinkedAccount = input.settings.get(UserSettings.PerksLinkedAccount);
+				const userTwoLinkedAccount = klasaUserToLink.settings.get(UserSettings.PerksLinkedAccount);
+				if (userOneLinkedAccount || userTwoLinkedAccount) {
+					return msg.channel.send('One of these accounts is already linked');
+				}
+				await input.settings.update(UserSettings.PerksLinkedAccount, klasaUserToLink.id);
+				await klasaUserToLink.settings.update(UserSettings.PerksLinkedAccount, input.id);
+				return msg.channel.send(`Successfully linked ${input} to ${klasaUserToLink}`);
+			}
+			case 'unlinkperks': {
+				if (!input || !(input instanceof KlasaUser)) return;
+				const linkedAccount = input.settings.get(UserSettings.PerksLinkedAccount);
+				if (!linkedAccount) return msg.channel.send('No linked account');
+				const linkedKlasaUser = await this.client.users.fetch(linkedAccount);
+				if (!linkedKlasaUser && msg.flagArgs.force) {
+					await input.settings.update(UserSettings.PerksLinkedAccount, null);
+					return msg.channel.send(`Force unlinked user ${input}`);
+				}
+				if (!linkedKlasaUser) {
+					return msg.channel.send(
+						"Unable to fetch linked user. Use `--force` to unlink anyway. This won't unlink the other side."
+					);
+				}
+				await input.settings.update(UserSettings.PerksLinkedAccount, null);
+				await linkedKlasaUser.settings.update(UserSettings.PerksLinkedAccount, null);
+				return msg.channel.send(`Unlinked accounts ${input} and ${linkedKlasaUser}`);
+			}
+			case 'showperkslink': {
+				if (!input || !(input instanceof KlasaUser)) return;
+				const linkedAccount = input.settings.get(UserSettings.PerksLinkedAccount);
+				if (!linkedAccount) return msg.channel.send('No account linked for specified user');
+				return msg.channel.send(`${input} is linked to user: ${linkedAccount}`);
+			}
 			case 'patreon': {
 				msg.channel.send('Running patreon task...');
 				await this.client.tasks.get('patreon')?.run();
