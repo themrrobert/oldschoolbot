@@ -195,11 +195,11 @@ ${
 				const linkedKlasaUser = await this.client.users.fetch(linkedAccount);
 				if (!linkedKlasaUser && msg.flagArgs.force) {
 					await input.settings.update(UserSettings.PerksLinkedAccount, null);
-					return msg.channel.send(`Force unlinked user ${input}`);
+					return msg.channel.send(`Force unlinked user ${input}. Couldn't find: ${linkedAccount}`);
 				}
 				if (!linkedKlasaUser) {
 					return msg.channel.send(
-						"Unable to fetch linked user. Use `--force` to unlink anyway. This won't unlink the other side."
+						`Unable to fetch linked user ${linkedAccount}. Use \`--force\` to unlink anyway. This won't unlink the other side.`
 					);
 				}
 				await input.settings.update(UserSettings.PerksLinkedAccount, null);
