@@ -1,7 +1,7 @@
 import { KlasaMessage } from 'klasa';
 
 import { cancelTask, getActivityOfUser } from '../../settings/settings';
-import { NightmareActivityTaskOptions, RaidsOptions } from '../../types/minions';
+import { NightmareActivityTaskOptions, RaidsOptions, TheatreOfBloodTaskOptions } from '../../types/minions';
 
 export async function cancelTaskCommand(msg: KlasaMessage) {
 	const currentTask = getActivityOfUser(msg.author.id) as any;
@@ -46,6 +46,15 @@ export async function cancelTaskCommand(msg: KlasaMessage) {
 		if (data.users.length > 1) {
 			return msg.channel.send(
 				`${msg.author.minionName} is currently doing the Chamber's of Xeric, they cannot leave their team!`
+			);
+		}
+	}
+
+	if (currentTask.type === 'TheatreOfBlood') {
+		const data = currentTask as TheatreOfBloodTaskOptions;
+		if (data.users.length > 1) {
+			return msg.channel.send(
+				`${msg.author.minionName} is currently doing the Theatre of Blood, they cannot leave their team!`
 			);
 		}
 	}
