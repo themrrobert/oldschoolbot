@@ -191,9 +191,6 @@ export default class POHCommand extends BotCommand {
 	}
 
 	async mountItem(msg: KlasaMessage, [name]: [string]) {
-		if (1 < 2) {
-			return msg.channel.send('Item mounting is currently disabled.');
-		}
 		const poh = await msg.author.getPOH();
 		if (!name) {
 			return msg.channel.send({ files: [await this.genImage(poh, true)] });
@@ -215,13 +212,16 @@ export default class POHCommand extends BotCommand {
 		if (userBank.amount('Magic stone') < 2) {
 			return msg.channel.send("You don't have 2x Magic stone.");
 		}
-		const currItem = poh.mounted_item === 1112 ? null : poh.mounted_item;
 
-		userBank.remove(item.id);
+		const pohItemMount = PoHObjects.find(p => p.name === 'Item mount');
+		const currItem = poh.mounted_item === pohItemMount!.id ? null : poh.mounted_item;
+
+		await msg.author.removeItemsFromBank(new Bank().add('Magic stone', 2).add(item.id, 1));
+
+		// Add old item to bank last to avoid a potential dupe if they can break "removeItemsFromBank":
 		if (currItem) {
-			userBank.add(item.id);
+			await msg.author.addItemsToBank({ items: new Bank().add(currItem, 1), collectionLog: false });
 		}
-		await msg.author.settings.update(UserSettings.Bank, userBank.bank);
 
 		await prisma.playerOwnedHouse.update({
 			where: {
@@ -231,6 +231,9 @@ export default class POHCommand extends BotCommand {
 				mounted_item: item.id
 			}
 		});
+
+		// Update the local copy so the displayed image is current:
+		poh.mounted_item = item.id;
 
 		return msg.channel.send({
 			content: `You mounted a ${item.name} in your house, using 2x Magic stone and 1x ${
