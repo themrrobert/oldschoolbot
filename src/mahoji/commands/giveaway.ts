@@ -70,7 +70,9 @@ export const giveawayCommand: OSBMahojiCommand = {
 					completed: false
 				}
 			});
-
+			if (mUser.minion_ironman) {
+				return "Ironmen can't gamble! Go pickpocket some men for GP.";
+			}
 			if (existingGiveaways.length > 5) {
 				return 'You cannot have more than 5 giveaways active at a time.';
 			}

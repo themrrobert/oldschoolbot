@@ -34,7 +34,7 @@ export async function handleGiveawayCompletion(giveaway: Giveaway) {
 		const users: KlasaUser[] = !reactions
 			? []
 			: Array.from(
-					(await reactions.users.fetch({ limit: 1000 }))!
+					(await reactions.users.fetch())!
 						.filter(u => !u.isIronman && !u.bot && u.id !== giveaway.user_id)
 						.values()
 			  );
