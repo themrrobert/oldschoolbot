@@ -766,6 +766,7 @@ enum activity_type_enum {
   TroubleBrewing
   Easter
   BaxtorianBathhouses
+  Naxxus
 
   Disassembling
   Research
