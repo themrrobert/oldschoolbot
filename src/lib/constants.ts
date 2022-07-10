@@ -268,6 +268,7 @@ export const enum Tasks {
 	BaxtorianBathhouses = 'bathhousesActivity',
 	TroubleBrewing = 'troubleBrewingActivity',
 	PuroPuro = 'puroPuroActivity',
+	Naxxus = 'naxxusActivity',
 	Disassembling = 'disassemblingActivity',
 	Research = 'researchActivity',
 	Moktang = 'moktangActivity',
