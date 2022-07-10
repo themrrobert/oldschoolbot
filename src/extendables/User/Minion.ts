@@ -734,7 +734,7 @@ export default class extends Extendable {
 			case 'Naxxus': {
 				const data = currentTask as NaxxusActivityTaskOptions;
 
-				return `${this.minionName} is currently killing ${data.quantity} Naxxus. ${formattedDuration}`;
+				return `${this.minionName} is currently fighting ${data.quantity} Naxxus. ${formattedDuration}`;
 			}
 			case 'Disassembling': {
 				const data = currentTask as DisassembleTaskOptions;
