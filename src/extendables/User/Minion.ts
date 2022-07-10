@@ -83,6 +83,7 @@ import {
 	MiningActivityTaskOptions,
 	MonkeyRumbleOptions,
 	MonsterActivityTaskOptions,
+	NaxxusActivityTaskOptions,
 	NewBossOptions,
 	NightmareActivityTaskOptions,
 	OfferingActivityTaskOptions,
@@ -721,6 +722,11 @@ export default class extends Extendable {
 				return `${this.minionName} is currently doing ${
 					data.quantity
 				}x games of Trouble Brewing. The trip should take ${formatDuration(durationRemaining)}.`;
+			}
+			case 'Naxxus': {
+				const data = currentTask as NaxxusActivityTaskOptions;
+
+				return `${this.minionName} is currently killing ${data.quantity} Naxxus. ${formattedDuration}`;
 			}
 			case 'Disassembling': {
 				const data = currentTask as DisassembleTaskOptions;
