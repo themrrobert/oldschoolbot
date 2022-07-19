@@ -2767,14 +2767,14 @@ setCustomItem(
 );
 setCustomItem(70_001, 'Grimy Korulsi', 'Coal', { tradeable: true }, 100_000);
 setCustomItem(70_002, 'Korulsi', 'Coal', { tradeable: true }, 100_000);
-setCustomItem(70_003, 'Korulsi Seed', 'Coal', { tradeable: true }, 50_000);
-setCustomItem(70_004, 'Enhanced Saradomin Brew', 'Coal', { tradeable: true }, 10_000);
-setCustomItem(70_005, 'Enhanced Super Restore', 'Coal', { tradeable: true }, 10_000);
-setCustomItem(70_006, 'Enhanced Stamina Potion', 'Coal', { tradeable: true }, 10_000);
-setCustomItem(70_007, 'Enhanced Divine Water', 'Coal', { tradeable: true }, 10_000);
+setCustomItem(70_003, 'Korulsi seed', 'Coal', { tradeable: true }, 50_000);
+setCustomItem(70_004, 'Enhanced saradomin brew', 'Coal', { tradeable: true }, 10_000);
+setCustomItem(70_005, 'Enhanced super restore', 'Coal', { tradeable: true }, 10_000);
+setCustomItem(70_006, 'Enhanced stamina potion', 'Coal', { tradeable: true }, 10_000);
+setCustomItem(70_007, 'Enhanced divine water', 'Coal', { tradeable: true }, 10_000);
 setCustomItem(
 	70_008,
-	'Dark Crystal',
+	'Dark crystal',
 	'Coal',
 	{
 		customItemData: {
@@ -2786,7 +2786,7 @@ setCustomItem(
 );
 setCustomItem(
 	70_009,
-	'Void Staff (u)',
+	'Void staff (u)',
 	'Coal',
 	{
 		customItemData: {
@@ -2798,7 +2798,7 @@ setCustomItem(
 );
 setCustomItem(
 	70_010,
-	'Void Staff',
+	'Void staff',
 	'Battlestaff',
 	{
 		customItemData: {
@@ -2831,8 +2831,8 @@ setCustomItem(
 );
 setCustomItem(
 	70_011,
-	'Dark Animica',
-	'Runite Ore',
+	'Dark animica',
+	'Runite ore',
 	{
 		customItemData: {
 			cantDropFromMysteryBoxes: true,
@@ -2843,8 +2843,8 @@ setCustomItem(
 );
 setCustomItem(
 	70_012,
-	'Tattered Tome',
-	'Magic Seed',
+	'Tattered tome',
+	'Magic seed',
 	{
 		customItemData: {
 			cantDropFromMysteryBoxes: true,
@@ -2855,7 +2855,7 @@ setCustomItem(
 );
 setCustomItem(
 	70_013,
-	'Abyssal Tome',
+	'Abyssal tome',
 	'Book of law',
 	{
 		customItemData: {
@@ -2888,7 +2888,7 @@ setCustomItem(
 );
 setCustomItem(
 	70_014,
-	'Abyssal Gem',
+	'Abyssal gem',
 	'Zenyte',
 	{
 		customItemData: {
@@ -2900,8 +2900,8 @@ setCustomItem(
 );
 setCustomItem(
 	70_015,
-	'Abyssal Amulet',
-	'Amulet of Torture',
+	'Abyssal amulet',
+	'Amulet of torture',
 	{
 		customItemData: {
 			cantDropFromMysteryBoxes: true,
@@ -2933,8 +2933,8 @@ setCustomItem(
 );
 setCustomItem(
 	70_016,
-	'Spellbound Ring',
-	'Seers Ring',
+	'Spellbound ring',
+	'Seers ring',
 	{
 		customItemData: {
 			cantDropFromMysteryBoxes: true,
@@ -2966,8 +2966,8 @@ setCustomItem(
 );
 setCustomItem(
 	70_017,
-	'Spellbound Ring(i)',
-	'Seers Ring',
+	'Spellbound ring(i)',
+	'Seers ring',
 	{
 		customItemData: {
 			cantDropFromMysteryBoxes: true,
@@ -2997,4 +2997,4 @@ setCustomItem(
 	},
 	10_000_000
 );
-setCustomItem(70_018, 'Grand Crystal Acorn', 'Coal', { tradeable: true }, 6000);
+setCustomItem(70_018, 'Grand crystal acorn', 'Coal', { tradeable: true }, 6000);
