@@ -11,6 +11,7 @@ import { revenantMonsters } from '../../lib/minions/data/killableMonsters/revs';
 import { NexMonster } from '../../lib/nex';
 import { prisma } from '../../lib/settings/prisma';
 import { minionKillCommand } from '../lib/abstracted_commands/minionKill';
+import { MOKTANG_ID } from '../lib/abstracted_commands/moktangCommand';
 import { OSBMahojiCommand } from '../lib/util';
 
 const autocompleteMonsters = [
@@ -74,6 +75,11 @@ const autocompleteMonsters = [
 		aliases: ['wt', 'wintertodt', 'todt'],
 		id: -1,
 		emoji: '<:Phoenix:324127378223792129>'
+	},
+	{
+		name: 'Moktang',
+		aliases: ['moktang'],
+		id: MOKTANG_ID
 	}
 ];
 

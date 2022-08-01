@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 
 import Buyables from '../../lib/data/buyables/buyables';
 import { kittens } from '../../lib/growablePets';
+import { gotFavour } from '../../lib/minions/data/kourendFavour';
 import { Minigames } from '../../lib/settings/minigames';
 import { isElligibleForPresent } from '../../lib/settings/settings';
 import { ClientSettings } from '../../lib/settings/types/ClientSettings';
@@ -20,6 +21,8 @@ import getOSItem from '../../lib/util/getOSItem';
 import { OSBMahojiCommand } from '../lib/util';
 import { handleMahojiConfirmation, mahojiParseNumber, mahojiUsersSettingsFetch } from '../mahojiSettings';
 
+const allBuyablesAutocomplete = [...Buyables, { name: 'Kitten' }];
+
 export const buyCommand: OSBMahojiCommand = {
 	name: 'buy',
 	description: 'Allows you to purchase items.',
@@ -30,7 +33,7 @@ export const buyCommand: OSBMahojiCommand = {
 			description: 'The item you want to buy.',
 			required: true,
 			autocomplete: async (value: string) => {
-				return [...Buyables, { name: 'Kitten' }]
+				return allBuyablesAutocomplete
 					.filter(i => (!value ? true : i.name.toLowerCase().includes(value.toLowerCase())))
 					.map(i => ({ name: i.name, value: i.name }));
 			}
@@ -125,6 +128,13 @@ export const buyCommand: OSBMahojiCommand = {
 			)}.`;
 		}
 
+		if (buyable.requiredFavour) {
+			const [success, points] = gotFavour(user, buyable.requiredFavour, 100);
+			if (!success) {
+				return `You don't have the required amount of Favour to buy this item.\n\nRequired: ${points}% ${buyable.requiredFavour.toString()} Favour.`;
+			}
+		}
+
 		if (buyable.minigameScoreReq) {
 			const [key, req] = buyable.minigameScoreReq;
 			let kc = await user.getMinigameScore(key);
@@ -152,8 +162,6 @@ export const buyCommand: OSBMahojiCommand = {
 				gpCost = Math.floor(100_000_000 * (previouslyBought + 1) * ((previouslyBought + 1) / 3));
 			}
 		}
-
-		if (buyable.name === 'Beehive') quantity = 1;
 
 		// If itemCost is undefined, it creates a new empty Bank, like we want:
 		const singleCost: Bank = new Bank(buyable.itemCost);

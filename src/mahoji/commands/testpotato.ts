@@ -6,9 +6,9 @@ import { Bank, Items } from 'oldschooljs';
 import { EquipmentSlot } from 'oldschooljs/dist/meta/types';
 import { convertLVLtoXP, itemID } from 'oldschooljs/dist/util';
 
-import { generateNewTame } from '../../commands/bso/nursery';
 import { production } from '../../config';
 import { BathhouseOres, BathwaterMixtures } from '../../lib/baxtorianBathhouses';
+import { allStashUnitsFlat, allStashUnitTiers } from '../../lib/clues/stashUnits';
 import { BitField, MAX_QP } from '../../lib/constants';
 import {
 	gorajanArcherOutfit,
@@ -18,6 +18,7 @@ import {
 	torvaOutfit,
 	virtusOutfit
 } from '../../lib/data/CollectionsExport';
+import { leaguesCreatables } from '../../lib/data/creatables/leagueCreatables';
 import { TOBMaxMageGear, TOBMaxMeleeGear, TOBMaxRangeGear } from '../../lib/data/tob';
 import { dyedItems } from '../../lib/dyedItems';
 import { materialTypes } from '../../lib/invention';
@@ -50,6 +51,7 @@ import { getPOH } from '../lib/abstracted_commands/pohCommand';
 import { allUsableItems } from '../lib/abstracted_commands/useCommand';
 import { OSBMahojiCommand } from '../lib/util';
 import { mahojiUserSettingsUpdate, mahojiUsersSettingsFetch } from '../mahojiSettings';
+import { generateNewTame } from './nursery';
 
 async function giveMaxStats(user: KlasaUser, level = 99, qp = MAX_QP) {
 	const paths = Object.values(Skills).map(sk => `skills.${sk.id}`);
@@ -212,6 +214,18 @@ for (const group of DisassemblySourceGroups) {
 		disassembly.add(item.id, 1000);
 	}
 }
+const leaguesPreset = new Bank();
+for (const a of leaguesCreatables) leaguesPreset.add(a.outputItems);
+
+const allStashUnitItems = new Bank();
+for (const unit of allStashUnitsFlat) {
+	for (const i of [unit.items].flat(2)) {
+		allStashUnitItems.add(i);
+	}
+}
+for (const tier of allStashUnitTiers) {
+	allStashUnitItems.add(tier.cost.clone().multiply(tier.units.length));
+}
 
 const spawnPresets = [
 	['openables', openablesBank],
@@ -222,7 +236,10 @@ const spawnPresets = [
 	['baxtorian_bathhouse', baxBathBank],
 	['usables', usables],
 	['bsogear', bsoGear],
-	['disassembly', disassembly]
+	['disassembly', disassembly],
+	['usables', usables],
+	['leagues', leaguesPreset],
+	['stashunits', allStashUnitItems]
 ] as const;
 
 const nexSupplies = new Bank()
@@ -551,6 +568,20 @@ export const testPotatoCommand: OSBMahojiCommand | null = production
 					return 'Invalid thing to reset.';
 				}
 				if (options.max) {
+					await roboChimpClient.user.upsert({
+						where: {
+							id: BigInt(user.id)
+						},
+						create: {
+							id: BigInt(user.id),
+							leagues_points_balance_osb: 25_000
+						},
+						update: {
+							leagues_points_balance_osb: {
+								increment: 25_000
+							}
+						}
+					});
 					return giveMaxStats(user);
 				}
 				if (options.patron) {

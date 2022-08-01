@@ -269,6 +269,7 @@ export const enum Tasks {
 	Naxxus = 'naxxusActivity',
 	Disassembling = 'disassemblingActivity',
 	Research = 'researchActivity',
+	Moktang = 'moktangActivity',
 	REMOVED = '__REMOVED__'
 }
 

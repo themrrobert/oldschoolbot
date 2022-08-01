@@ -12,7 +12,7 @@ import {
 	mahojiUserSettingsUpdate,
 	mahojiUsersSettingsFetch
 } from '../../mahoji/mahojiSettings';
-import ClueTiers, { ClueTier } from '../minions/data/clueTiers';
+import { ClueTier, ClueTiers } from '../clues/clueTiers';
 import { ItemBank } from '../types';
 import { clamp, formatDuration, stringMatches, toKMB } from '../util';
 import getOSItem from '../util/getOSItem';
@@ -306,14 +306,14 @@ export const Inventions: readonly Invention[] = [
 		description: `Makes fishing ${inventionBoosts.mechaRod.speedBoostPercent}% faster.`,
 		item: getOSItem('Mecha rod'),
 		materialTypeBank: new MaterialBank({
-			flexible: 5,
-			organic: 3,
+			flexible: 4,
+			organic: 4,
 			strong: 2
 		}),
 		flags: ['bank'],
 		itemCost: null,
 		inventionLevelNeeded: 85,
-		usageCostMultiplier: 0.9
+		usageCostMultiplier: 0.7
 	},
 	{
 		id: InventionID.MasterHammerAndChisel,

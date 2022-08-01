@@ -5,6 +5,9 @@ import { Bank } from 'oldschooljs';
 import { table } from 'table';
 
 import Createables from '../../lib/data/createables';
+import { IMaterialBank } from '../../lib/invention';
+import { transactMaterialsFromUser } from '../../lib/invention/inventions';
+import { MaterialBank } from '../../lib/invention/MaterialBank';
 import { gotFavour } from '../../lib/minions/data/kourendFavour';
 import { ClientSettings } from '../../lib/settings/types/ClientSettings';
 import { UserSettings } from '../../lib/settings/types/UserSettings';
@@ -13,7 +16,7 @@ import { SlayerTaskUnlocksEnum } from '../../lib/slayer/slayerUnlocks';
 import { hasSlayerUnlock } from '../../lib/slayer/slayerUtil';
 import { stringMatches, updateBankSetting } from '../../lib/util';
 import { OSBMahojiCommand } from '../lib/util';
-import { handleMahojiConfirmation } from '../mahojiSettings';
+import { handleMahojiConfirmation, mahojiUsersSettingsFetch } from '../mahojiSettings';
 
 function showAllCreatables(user: KlasaUser) {
 	let content = 'This are the items that you can create:';
@@ -168,10 +171,17 @@ export const createCommand: OSBMahojiCommand = {
 		).multiply(quantity);
 
 		if (createableItem.GPCost) {
-			inItems.add('Coins', createableItem.GPCost);
+			inItems.add('Coins', createableItem.GPCost * quantity);
 		}
 
-		await user.settings.sync(true);
+		const mahojiUser = await mahojiUsersSettingsFetch(user.id, { materials_owned: true });
+		const materialsOwned = new MaterialBank(mahojiUser.materials_owned as IMaterialBank);
+		const materialCost = createableItem.materialCost
+			? createableItem.materialCost.clone().multiply(quantity)
+			: null;
+		if (materialCost && !materialsOwned.has(materialCost)) {
+			return `You don't own the materials needed to create this, you need: ${materialCost}.`;
+		}
 
 		// Check for any items they cant have 2 of.
 		if (createableItem.cantHaveItems) {
@@ -191,16 +201,14 @@ export const createCommand: OSBMahojiCommand = {
 		if (action === 'revert') {
 			await handleMahojiConfirmation(
 				interaction,
-				`${user}, please confirm that you want to revert **${inItems}${
-					createableItem.GPCost ? ` and ${(createableItem.GPCost * quantity).toLocaleString()} GP` : ''
-				}** into ${outItems}.`
+				`${user}, please confirm that you want to revert **${inItems}** into ${outItems}`
 			);
 		} else {
 			await handleMahojiConfirmation(
 				interaction,
 				`${user}, please confirm that you want to ${action} **${outItems}** using ${inItems}${
-					createableItem.GPCost ? ` and ${(createableItem.GPCost * quantity).toLocaleString()} GP` : ''
-				}.${
+					materialCost !== null ? `, and ${materialCost} materials` : ''
+				}${
 					isDyeing
 						? '\n\nIf you are putting a dye on an item - the action is irreversible, you cannot get back the dye or the item, it is dyed forever. Are you sure you want to do that?'
 						: ''
@@ -210,11 +218,15 @@ export const createCommand: OSBMahojiCommand = {
 
 		// Ensure they have the required items to create the item.
 		if (!user.owns(inItems)) {
-			return `You don't have the required items to ${action} this item. You need: ${inItems}${
-				createableItem.GPCost ? ` and ${(createableItem.GPCost * quantity).toLocaleString()} GP` : ''
-			}.`;
+			return `You don't have the required items to ${action} this item. You need: ${inItems}.`;
 		}
 
+		if (materialCost) {
+			await transactMaterialsFromUser({
+				userID: BigInt(user.id),
+				remove: materialCost
+			});
+		}
 		await user.removeItemsFromBank(inItems);
 		await user.addItemsToBank({ items: outItems });
 

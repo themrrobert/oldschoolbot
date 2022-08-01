@@ -30,9 +30,9 @@ import {
 	boostIceBurst,
 	boostSuperiorCannon,
 	boostSuperiorCannonMulti,
+	cannonBanks,
 	cannonMultiConsumables,
 	cannonSingleConsumables,
-	CombatCannonItemBank,
 	CombatOptionsEnum,
 	iceBarrageConsumables,
 	iceBurstConsumables,
@@ -71,6 +71,7 @@ import { igneCommand } from './igneCommand';
 import { kgCommand } from './kgCommand';
 import { kkCommand } from './kkCommand';
 import { naxxusCommand } from './naxxusCommand';
+import { moktangCommand } from './moktangCommand';
 import { nexCommand } from './nexCommand';
 import { nightmareCommand } from './nightmareCommand';
 import { getPOH } from './pohCommand';
@@ -185,6 +186,7 @@ export async function minionKillCommand(
 	if (name.toLowerCase().includes('kalphite king')) return kkCommand(interaction, user, channelID, name, quantity);
 	if (name.toLowerCase().includes('nex')) return nexCommand(interaction, user, channelID, name, quantity);
 	if (name.toLowerCase().includes('naxxus')) return naxxusCommand(user, channelID, quantity);
+	if (name.toLowerCase().includes('moktang')) return moktangCommand(user, channelID, quantity);
 
 	if (revenantMonsters.some(i => i.aliases.some(a => stringMatches(a, name)))) {
 		const mUser = await mahojiUsersSettingsFetch(user.id);
@@ -355,7 +357,7 @@ export async function minionKillCommand(
 	let cannonMulti = false;
 	let burstOrBarrage = 0;
 	const hasSuperiorCannon = user.owns('Superior dwarf multicannon');
-	const hasCannon = user.owns(CombatCannonItemBank) || hasSuperiorCannon;
+	const hasCannon = cannonBanks.some(i => user.owns(i)) || hasSuperiorCannon;
 
 	if (!isOnTask && method && method !== 'none') {
 		return 'You can only burst/barrage/cannon while on task in BSO.';

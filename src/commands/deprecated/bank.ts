@@ -50,7 +50,7 @@ export default class extends BotCommand {
 		if (!page) page = 1;
 
 		if (msg.flagArgs.smallbank) {
-			return msg.channel.send('You now use `/config user small_bank` to change this setting.');
+			return msg.channel.send('You now use `/config user toggle name:Small Bank Images` to change this setting.');
 		}
 
 		if (baseBank.length === 0) {
@@ -119,8 +119,9 @@ export default class extends BotCommand {
 			return null;
 		}
 
-		return msg.channel.send(
-			await makeBankImageKlasa({
+		return msg.channel.send({
+			content: 'Try out the new `/bank` slash command!',
+			...(await makeBankImageKlasa({
 				bank,
 				title: `${msg.author.username}'s Bank`,
 				flags: {
@@ -128,7 +129,7 @@ export default class extends BotCommand {
 					page: page - 1
 				},
 				user: msg.author
-			})
-		);
+			}))
+		});
 	}
 }

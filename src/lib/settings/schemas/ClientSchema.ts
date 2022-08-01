@@ -98,4 +98,7 @@ Client.defaultClientSchema
 	.add('market_prices', 'any', { default: {} })
 
 	.add('bb_cost', 'any', { default: {} })
-	.add('bb_loot', 'any', { default: {} });
+	.add('bb_loot', 'any', { default: {} })
+
+	.add('moktang_cost', 'any', { default: {} })
+	.add('moktang_loot', 'any', { default: {} });
