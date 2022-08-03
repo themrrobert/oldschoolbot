@@ -1,9 +1,10 @@
-import { Time } from 'e';
+import { reduceNumByPercent, Time } from 'e';
 import { ApplicationCommandOptionType, CommandRunOptions } from 'mahoji';
 import { Bank } from 'oldschooljs';
 import { SkillsEnum } from 'oldschooljs/dist/constants';
 
 import { Emoji } from '../../lib/constants';
+import { inventionBoosts, Inventions } from '../../lib/invention/inventions';
 import { darkAltarCommand } from '../../lib/minions/functions/darkAltarCommand';
 import { ClientSettings } from '../../lib/settings/types/ClientSettings';
 import { UserSettings } from '../../lib/settings/types/UserSettings';
@@ -12,6 +13,7 @@ import { RunecraftActivityTaskOptions } from '../../lib/types/minions';
 import { calcMaxRCQuantity, formatDuration, stringMatches, toTitleCase, updateBankSetting } from '../../lib/util';
 import addSubTaskToActivityTask from '../../lib/util/addSubTaskToActivityTask';
 import { determineRunes } from '../../lib/util/determineRunes';
+import { hasItemsEquippedOrInBank } from '../../lib/util/minionUtils';
 import { OSBMahojiCommand } from '../lib/util';
 
 export const runecraftCommand: OSBMahojiCommand = {
@@ -129,6 +131,17 @@ export const runecraftCommand: OSBMahojiCommand = {
 			tripLength *= 0.99;
 			const ringStr = '1% boost for Ring of endurance';
 			boosts.push(ringStr);
+		}
+
+		const amuletId = Inventions.find(inv => inv.name === 'Abyssal amulet')!.item.id;
+		if (hasItemsEquippedOrInBank(user, [amuletId])) {
+			const abyssalAmulet = inventionBoosts.abyssalAmulet.boosts.find(b =>
+				b.runes.some(r => stringMatches(r, runeObj.name))
+			);
+			if (abyssalAmulet) {
+				tripLength = reduceNumByPercent(tripLength, abyssalAmulet.boost);
+				boosts.push(`${abyssalAmulet.boost}% boost for Abyssal amulet`);
+			}
 		}
 
 		let inventorySize = 28;
