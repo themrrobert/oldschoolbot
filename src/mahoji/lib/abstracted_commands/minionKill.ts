@@ -119,7 +119,7 @@ const degradeableItemsCanUse = [
 		charges: (
 			_killableMon: KillableMonster,
 			_monster: Monster,
-			totalHP: number,
+			_totalHP: number,
 			duration: number,
 			user: KlasaUser
 		) => {
