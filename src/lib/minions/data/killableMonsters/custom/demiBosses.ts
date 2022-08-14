@@ -245,6 +245,7 @@ const Nihiliz: CustomMonster = {
 	],
 	groupKillable: true,
 	respawnTime: Time.Second * 10,
+	hp: 900,
 	levelRequirements: {
 		prayer: 95,
 		attack: 99,
