@@ -87,12 +87,12 @@ export const baseHolidayItems = new LootTable()
 	.add('Eggshell platebody')
 	.add('Eggshell platelegs')
 	.add('Jonas mask')
-	.add('Snow imp costume head')
-	.add('Snow imp costume body')
-	.add('Snow imp costume legs')
-	.add('Snow imp costume gloves')
-	.add('Snow imp costume feet')
-	.add('Snow imp costume tail')
+	.add(21_847) // Snow imp costume head
+	.add(21_849) // Snow imp costume body
+	.add(21_851) // Snow imp costume legs
+	.add(21_853) // Snow imp costume gloves
+	.add(21_855) // Snow imp costume feet
+	.add(21_857) // Snow imp costume tail
 	.add('Star-face')
 	.add('Tree top')
 	.add('Tree skirt')
