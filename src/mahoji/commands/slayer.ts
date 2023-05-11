@@ -102,10 +102,12 @@ export const slayerCommand: OSBMahojiCommand = {
 							name: 'unlockable',
 							description: 'Unlockable to purchase',
 							required: true,
-							autocomplete: async (value: string) => {
+							autocomplete: async (value: string, user: User) => {
+								const mahojiUser = await mahojiUsersSettingsFetch(user.id, { slayer_unlocks: true });
 								return SlayerRewardsShop.filter(
 									r =>
 										!r.item &&
+										!mahojiUser.slayer_unlocks.includes(r.id) &&
 										(!value
 											? true
 											: r.name.toLowerCase().includes(value) ||
