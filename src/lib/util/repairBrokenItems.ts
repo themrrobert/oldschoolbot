@@ -15,6 +15,7 @@ export async function repairBrokenItemsFromUser(mUser: MUser): Promise<[string] 
 	const rawBank = user.bank as ItemBank;
 	const rawCL = user.collectionLogBank as ItemBank;
 	const rawTempCL = user.temp_cl as ItemBank;
+	const rawBankSortWeightings = user.bank_sort_weightings as ItemBank;
 
 	const { sacrificed_bank: rawSacLog } = (await mUser.fetchStats({ sacrificed_bank: true })) as {
 		sacrificed_bank: ItemBank;
@@ -51,6 +52,7 @@ export async function repairBrokenItemsFromUser(mUser: MUser): Promise<[string] 
 		['bank', Object.keys(rawBank)],
 		['cl', Object.keys(rawCL)],
 		['tempcl', Object.keys(rawTempCL)],
+		['weights', Object.keys(rawBankSortWeightings)],
 		['sl', Object.keys(rawSacLog)],
 		['favs', favorites],
 		['gear', allGearItemIDs]
@@ -80,12 +82,14 @@ export async function repairBrokenItemsFromUser(mUser: MUser): Promise<[string] 
 	const newBank = { ...rawBank };
 	const newCL = { ...rawCL };
 	const newTempCL = { ...rawTempCL };
+	const newBankSortWeightings = { ...rawBankSortWeightings };
 	const newSacLog = { ...rawSacLog };
 
 	for (const id of brokenBank) {
 		delete newBank[id];
 		delete newCL[id];
 		delete newTempCL[id];
+		delete newBankSortWeightings[id];
 		delete newSacLog[id];
 		for (const [, tameBank] of newTameBanks) {
 			delete tameBank[id];
@@ -114,6 +118,7 @@ export async function repairBrokenItemsFromUser(mUser: MUser): Promise<[string] 
 		changes.bank = newBank;
 		changes.collectionLogBank = newCL;
 		changes.temp_cl = newTempCL;
+		changes.bank_sort_weightings = newBankSortWeightings;
 		if (newFavs.includes(NaN) || [newBank, newCL, newTempCL].some(i => Boolean(i['NaN']))) {
 			return ['Oopsie...'];
 		}
@@ -145,7 +150,7 @@ export async function repairBrokenItemsFromUser(mUser: MUser): Promise<[string] 
 		return [
 			`You had ${
 				brokenBank.length
-			} broken items in your bank/collection log/favorites/gear/tame, they were removed. ${moidLink(
+			} broken items in your bank/collection log/sacrifice log/bank weights/favorites/gear/tame, they were removed. ${moidLink(
 				brokenBank
 			).slice(0, 500)}`,
 			Object.keys(brokenBank)
