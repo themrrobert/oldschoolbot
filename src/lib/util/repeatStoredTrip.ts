@@ -85,7 +85,8 @@ export const taskCanBeRepeated = (type: activity_type_enum) =>
 			activity_type_enum.FishingContest,
 			activity_type_enum.BossEvent,
 			activity_type_enum.Birdhouse,
-			activity_type_enum.HalloweenMiniMinigame
+			activity_type_enum.HalloweenMiniMinigame,
+			activity_type_enum.BalthazarsBigBonanza
 		] as activity_type_enum[]
 	).includes(type);
 
