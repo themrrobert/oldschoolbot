@@ -4,7 +4,7 @@ import { Bank } from 'oldschooljs';
 import { table } from 'table';
 
 import { BitField } from '../../../lib/constants';
-import { SlayerRewardsShop } from '../../../lib/slayer/slayerUnlocks';
+import { SlayerRewardsShop, slayerUnlockableRewards } from '../../../lib/slayer/slayerUnlocks';
 import { stringMatches } from '../../../lib/util';
 import { handleMahojiConfirmation } from '../../../lib/util/handleMahojiConfirmation';
 import { logError } from '../../../lib/util/logError';
@@ -70,7 +70,7 @@ export async function slayerShopBuyCommand({
 					slayer_unlocks: newUnlocks
 				});
 				if (
-					newUnlocks.length === SlayerRewardsShop.length &&
+					newUnlocks.length === slayerUnlockableRewards.length &&
 					!user.bitfield.includes(BitField.HadAllSlayerUnlocks)
 				) {
 					await user.update({
