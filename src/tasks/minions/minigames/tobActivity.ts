@@ -1,4 +1,4 @@
-import { formatOrdinal, miniID } from '@oldschoolgg/toolkit';
+import { formatOrdinal } from '@oldschoolgg/toolkit';
 import { calcPercentOfNum, calcWhatPercent, objectEntries, roll, shuffleArr } from 'e';
 import { Bank } from 'oldschooljs';
 
@@ -31,10 +31,7 @@ export const tobTask: MinionTask = {
 		const allUsers = await Promise.all(users.map(async u => mUserFetch(u)));
 
 		const tobUsers = users.map((i, index) => ({ id: i, deaths: deaths[index] }));
-		if (data.solo) {
-			tobUsers.push({ id: miniID(3), deaths: [] });
-			tobUsers.push({ id: miniID(3), deaths: [] });
-		}
+
 		const result = TheatreOfBlood.complete({
 			hardMode,
 			team: tobUsers

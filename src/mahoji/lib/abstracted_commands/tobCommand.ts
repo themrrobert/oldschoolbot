@@ -425,9 +425,7 @@ export async function tobStartCommand(
 
 	let str = `${partyOptions.leader.usernameOrMention}'s party (${users
 		.map(u => u.usernameOrMention)
-		.join(', ')}) is now off to do a Theatre of Blood raid - the total trip will take ${formatDuration(duration)}.${
-		solo ? " You're in a team of 3." : ''
-	}`;
+		.join(', ')}) is now off to do a Theatre of Blood raid - the total trip will take ${formatDuration(duration)}.`;
 
 	str += ` \n\n${debugStr}`;
 
