@@ -38,7 +38,7 @@ async function farmingLootBoosts(user: MUser, plant: Plant, loot: Bank, messages
 		messages.push('100% for Plopper');
 	}
 
-	if (user.allItemsOwned.has('Farming master cape')) {
+	if (user.hasEquippedOrInBank('Farming master cape')) {
 		bonusPercentage += 100;
 		messages.push('100% for Farming master cape');
 	}
