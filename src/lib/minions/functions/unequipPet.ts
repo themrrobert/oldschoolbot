@@ -10,7 +10,12 @@ export async function unequipPet(user: MUser) {
 	const loot = new Bank().add(equippedPet);
 
 	try {
-		await user.addItemsToBank({ items: loot, collectionLog: false });
+		const tx = [
+			user.updateTx({
+				minion_equippedPet: null
+			})
+		];
+		await user.transactItems({ itemsToAdd: loot, collectionLog: false, updates: tx });
 	} catch (e) {
 		logError(new Error('Failed to add pet to bank'), {
 			user_id: user.id,
@@ -18,9 +23,6 @@ export async function unequipPet(user: MUser) {
 		});
 		return 'Error removing pet, ask for help in the support server.';
 	}
-	await user.update({
-		minion_equippedPet: null
-	});
 
 	return `${user.minionName} picks up their ${itemNameFromID(equippedPet)} pet and places it back in their bank.`;
 }

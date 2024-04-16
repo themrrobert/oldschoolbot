@@ -4,7 +4,7 @@ import { Bank } from 'oldschooljs';
 import { findBingosWithUserParticipating } from '../../mahoji/lib/bingo/BingoManager';
 import { deduplicateClueScrolls } from '../clues/clueUtils';
 import { handleNewCLItems } from '../handleNewCLItems';
-import { mahojiUserSettingsUpdate } from '../MUser';
+import { prisma } from '../settings/prisma';
 import { filterLootReplace } from '../slayer/slayerUtil';
 import { ItemBank } from '../types';
 import { logError } from './logError';
@@ -19,6 +19,7 @@ export interface TransactItemsArgs {
 	dontAddToTempCL?: boolean;
 	neverUpdateHistory?: boolean;
 	otherUpdates?: Prisma.UserUpdateArgs['data'];
+	updates?: Prisma.PrismaPromise<any>[];
 }
 
 declare global {
@@ -119,12 +120,16 @@ export async function transactItemsFromBank({
 			newBank.remove(itemsToRemove);
 		}
 
-		const { newUser } = await mahojiUserSettingsUpdate(userID, {
-			bank: newBank.bank,
-			GP: gpUpdate,
-			...clUpdates,
-			...options.otherUpdates
+		const userUpdate = prisma.user.update({
+			where: {
+				id: userID
+			},
+			data: { bank: newBank.bank, GP: gpUpdate, ...clUpdates, ...options.otherUpdates }
 		});
+		const extraUpdates = options.updates ?? [];
+		const transactions: Prisma.PrismaPromise<any>[] = [userUpdate, ...extraUpdates];
+
+		const [newUser, ...extraResults] = await prisma.$transaction(transactions);
 
 		const itemsAdded = new Bank(itemsToAdd);
 		if (itemsAdded && gpUpdate && gpUpdate.increment > 0) {
@@ -157,7 +162,8 @@ export async function transactItemsFromBank({
 			itemsRemoved: itemsToRemove,
 			newBank: new Bank(newUser.bank as ItemBank),
 			newCL,
-			newUser
+			newUser,
+			extraResults
 		};
 	});
 }

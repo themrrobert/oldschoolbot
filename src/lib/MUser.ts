@@ -70,6 +70,15 @@ export async function mahojiUserSettingsUpdate(user: string | bigint, data: Pris
 	}
 }
 
+export function mahojiUserSettingsUpdateTx(user: string | bigint, data: Prisma.UserUncheckedUpdateInput) {
+	return prisma.user.update({
+		data,
+		where: {
+			id: user.toString()
+		}
+	});
+}
+
 function alchPrice(bank: Bank, item: Item, tripLength: number) {
 	const maxCasts = Math.min(Math.floor(tripLength / timePerAlch), bank.amount(item.id));
 	return maxCasts * (item.highalch ?? 0);
@@ -136,6 +145,10 @@ export class MUserClass {
 		this.user = result.newUser;
 		this.updateProperties();
 		return result;
+	}
+
+	updateTx(data: Prisma.UserUncheckedUpdateInput) {
+		return mahojiUserSettingsUpdateTx(this.id, data);
 	}
 
 	get combatLevel() {

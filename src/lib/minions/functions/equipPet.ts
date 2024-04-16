@@ -2,7 +2,6 @@ import { Bank } from 'oldschooljs';
 
 import { allPetIDs } from '../../data/CollectionsExport';
 import { getItem } from '../../util/getOSItem';
-import { unequipPet } from './unequipPet';
 
 export async function equipPet(user: MUser, itemName: string) {
 	const petItem = getItem(itemName);
@@ -13,20 +12,19 @@ export async function equipPet(user: MUser, itemName: string) {
 		return "That's not a pet, or you do not own this pet.";
 	}
 
+	const refundPet = new Bank();
+
 	const currentlyEquippedPet = user.user.minion_equippedPet;
 	if (currentlyEquippedPet) {
-		await unequipPet(user);
+		refundPet.add(currentlyEquippedPet);
 	}
 
-	const doubleCheckEquippedPet = user.user.minion_equippedPet;
-	if (doubleCheckEquippedPet) {
-		return 'You still have a pet equipped, cancelling.';
-	}
-
-	await user.update({
-		minion_equippedPet: petItem.id
-	});
-	await transactItems({ userID: user.id, itemsToRemove: cost });
+	const tx = [
+		user.updateTx({
+			minion_equippedPet: petItem.id
+		})
+	];
+	await transactItems({ userID: user.id, itemsToRemove: cost, itemsToAdd: refundPet, updates: tx });
 
 	return `${user.minionName} takes their ${petItem.name} from their bank, and puts it down to follow them.`;
 }
