@@ -2,7 +2,7 @@ import { userMention } from '@discordjs/builders';
 import { Prisma } from '@prisma/client';
 import { clamp, reduceNumByPercent, Time } from 'e';
 import { CommandResponse } from 'mahoji/dist/lib/structures/ICommand';
-import { Bank } from 'oldschooljs';
+import { Bank, LootTable } from 'oldschooljs';
 import { Item } from 'oldschooljs/dist/meta/types';
 
 import { ClueTier, ClueTiers } from '../clues/clueTiers';
@@ -150,17 +150,33 @@ export const inventionBoosts = {
 		hunterBoostPercent: 20
 	},
 	quantumTransmuter: {
-		chanceForExtraRoll: 90,
-		chanceForCalamity: 1,
+		chanceForExtraRoll: 100,
+		chanceForCalamity: 8,
+		calamityTable: new LootTable()
+			.add('Reward casket (beginner)', 33)
+			.add('Reward casket (easy)', 1, 30)
+			.add('Reward casket (medium)', 1, 25)
+			.add('Reward casket (hard)', 1, 22)
+			.add('Reward casket (elite)', 1, 18)
+			.add('Reward casket (master)', 1, 10)
+			.add('Reward casket (grandmaster)', 1, 3),
+		calamityElderChance: async (user: MUser) => {
+			const stats = await user.fetchStats({ openable_scores: true });
+			const opens = new Bank(stats.openable_scores as ItemBank);
+			if (opens.amount(ClueTiers.find(c => c.name === 'Elder')!.id) > 0) {
+				return 500;
+			}
+			return 0;
+		},
 		durationPerClue: (clue: ClueTier) => {
 			const base = Time.Minute;
-			const softener = 3;
-			const hardener = 1.4;
+			const softener = 4;
+			const hardener = 1.3;
 			let cost = (((ClueTiers.indexOf(clue) + softener) * hardener) / (ClueTiers.length - 1 + softener)) * base;
-			cost *= 10;
-			if (clue.name === 'Elder') cost *= 5;
-			if (clue.name === 'Grandmaster') cost *= 2.5;
-			if (clue.name === 'Master') cost *= 1.5;
+			cost *= 5;
+			if (clue.name === 'Elder') cost *= 4;
+			if (clue.name === 'Grandmaster') cost *= 2;
+			if (clue.name === 'Master') cost *= 1;
 			return cost;
 		},
 		howManyFit: (user: MUser, clue: ClueTier) => {

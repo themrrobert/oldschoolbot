@@ -33,9 +33,8 @@ export const EnigmarLootTable = new LootTable()
 			),
 		2
 	)
-	.tertiary(500, 'Elder scroll piece')
+	.tertiary(100, 'Elder scroll piece')
 	.tertiary(200, 'Enigmatic orb')
-	.tertiary(100, 'Clue scroll (grandmaster)')
 	.tertiary(10, 'Enigma tokens', [1, 3])
 	.tertiary(1000, "Mini 'mar");
 
