@@ -15,6 +15,7 @@ import { implingsCL } from '../implings';
 import { inventionCL } from '../invention/inventions';
 import { keyCrates } from '../keyCrates';
 import killableMonsters, { effectiveMonsters, NightmareMonster } from '../minions/data/killableMonsters';
+import { EnigmarLootTable } from '../minions/data/killableMonsters/custom/bosses/Enigmar';
 import { Ignecarus } from '../minions/data/killableMonsters/custom/bosses/Ignecarus';
 import {
 	kalphiteKingLootTable,
@@ -103,6 +104,7 @@ import {
 	dukeSucellusCL,
 	dungeoneeringCL,
 	emergedZukInfernoCL,
+	enigmarCL,
 	expertCapesCL,
 	fightCavesCL,
 	fishingContestCL,
@@ -690,6 +692,12 @@ export const allCollectionLogs: ICollection = {
 				allItems: venatrixCL,
 				items: venatrixCL,
 				fmtProg: kcProg(BSOMonsters.Venatrix.id)
+			},
+			Enigmar: {
+				alias: ['enigmar', 'enigma'],
+				allItems: EnigmarLootTable.allItems,
+				items: enigmarCL,
+				fmtProg: kcProg(BSOMonsters.Enigmar.id)
 			},
 			"Chamber's of Xeric": {
 				alias: ChambersOfXeric.aliases,

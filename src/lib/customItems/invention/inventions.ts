@@ -35,3 +35,4 @@ addInvention(73_042, 'Divine hand', 'Bronze dagger');
 addInvention(73_055, 'Drygore axe', 'Bronze dagger');
 addInvention(73_077, 'Moonlight mutator');
 addInvention(73_179, 'Webshooter', 'Coal');
+addInvention(73_200, 'Quantum transmuter', 'Coal');

@@ -807,11 +807,6 @@ GROUP BY data->>'clueID';`);
 		};
 	}
 
-	ownedMaterials() {
-		const materialsOwnedBank = new MaterialBank(this.user.materials_owned as IMaterialBank);
-		return materialsOwnedBank;
-	}
-
 	async repairBrokenItems() {
 		await repairBrokenItemsFromUser(this);
 		await this.sync();

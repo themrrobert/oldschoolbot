@@ -40,7 +40,8 @@ export enum InventionID {
 	DivineHand = 18,
 	DrygoreAxe = 19,
 	MoonlightMutator = 20,
-	Webshooter = 21
+	Webshooter = 21,
+	QuantumTransmuter = 22
 }
 
 export type Invention = Readonly<{
@@ -147,6 +148,30 @@ export const inventionBoosts = {
 	webshooter: {
 		passiveImplingBoostPercent: 30,
 		hunterBoostPercent: 20
+	},
+	quantumTransmuter: {
+		chanceForExtraRoll: 90,
+		chanceForCalamity: 1,
+		durationPerClue: (clue: ClueTier) => {
+			const base = Time.Minute;
+			const softener = 3;
+			const hardener = 1.4;
+			let cost = (((ClueTiers.indexOf(clue) + softener) * hardener) / (ClueTiers.length - 1 + softener)) * base;
+			cost *= 10;
+			if (clue.name === 'Elder') cost *= 5;
+			if (clue.name === 'Grandmaster') cost *= 2.5;
+			if (clue.name === 'Master') cost *= 1.5;
+			return cost;
+		},
+		howManyFit: (user: MUser, clue: ClueTier) => {
+			const dur = inventionBoosts.quantumTransmuter.durationPerClue(clue);
+			const multiplier = 100;
+			const { materialCost } = calcInventionCost(InventionID.QuantumTransmuter, multiplier * dur);
+			for (const material of Object.keys(materialCost.bank) as (keyof IMaterialBank)[]) {
+				materialCost.bank[material]! /= multiplier;
+			}
+			return user.materialsOwned().fits(materialCost);
+		}
 	}
 } as const;
 
@@ -487,6 +512,31 @@ export const Inventions: readonly Invention[] = [
 		flags: ['bank'],
 		inventionLevelNeeded: 100,
 		usageCostMultiplier: 0.4
+	},
+	{
+		id: InventionID.QuantumTransmuter,
+		name: 'Quantum transmuter',
+		description: `A mysterious box with a pulsing orb that gives a ${inventionBoosts.quantumTransmuter.chanceForExtraRoll}% chance for an extra clue roll, but also a ${inventionBoosts.quantumTransmuter.chanceForCalamity}% chance for calamity.`,
+		extraDescription: () => {
+			let str = '**Material cost per 100 clues:**';
+			for (let x = ClueTiers.length - 1; x >= 0; x--) {
+				const clue = ClueTiers[x];
+				const perClue = inventionBoosts.quantumTransmuter.durationPerClue(clue);
+				const { materialCost } = calcInventionCost(InventionID.QuantumTransmuter, perClue * 100);
+				str += `\n- **${clue.name}**: ${materialCost}`;
+			}
+			return str;
+		},
+		item: getOSItem('Quantum transmuter'),
+		materialTypeBank: new MaterialBank({
+			treasured: 2,
+			mysterious: 6,
+			precious: 2
+		}),
+		itemCost: new Bank().add('Enigmatic orb').add('Magical artifact', 20),
+		flags: ['bank'],
+		inventionLevelNeeded: 120,
+		usageCostMultiplier: 0.5
 	}
 ] as const;
 
@@ -549,7 +599,7 @@ export async function transactMaterialsFromUser({
 	addToResearchedMaterialsBank?: boolean;
 	addToGlobalInventionCostBank?: boolean;
 }) {
-	const materialsOwnedBank = user.ownedMaterials();
+	const materialsOwnedBank = user.materialsOwned();
 	if (add) materialsOwnedBank.add(add);
 	if (remove) materialsOwnedBank.remove(remove);
 
@@ -626,12 +676,14 @@ type InventionItemBoostResult =
 			success: false;
 	  };
 
-export function canAffordInventionBoost(user: MUser, inventionID: InventionID, duration: number) {
+export function calcInventionCost(
+	inventionID: InventionID,
+	duration: number
+): { invention: Invention; materialCost: MaterialBank } {
 	const invention = Inventions.find(i => i.id === inventionID)!;
 	if (invention.usageCostMultiplier === null) {
 		throw new Error('Tried to calculate cost of invention that has no cost.');
 	}
-	const materialsOwned = user.materialsOwned();
 	const materialCost = new MaterialBank();
 	let multiplier = Math.ceil(duration / (Time.Minute * 3));
 	multiplier = clamp(Math.floor(multiplier * invention.usageCostMultiplier), 1, 1000);
@@ -646,12 +698,30 @@ export function canAffordInventionBoost(user: MUser, inventionID: InventionID, d
 	}
 	materialCost.validate();
 
+	return { invention, materialCost };
+}
+export function canAffordInventionBoost(user: MUser, inventionID: InventionID, duration: number) {
+	const materialsOwned = user.materialsOwned();
+	const { invention, materialCost } = calcInventionCost(inventionID, duration);
+
 	return {
 		invention,
 		materialsOwned,
 		materialCost,
 		canAfford: materialsOwned.has(materialCost)
 	};
+}
+
+export function inventionEnabled(user: MUser, inventionID: InventionID) {
+	const invention = Inventions.find(i => i.id === inventionID)!;
+	if (
+		user.user.disabled_inventions.includes(invention.id) ||
+		(invention.flags.includes('equipped') && !user.hasEquipped(invention.item.id)) ||
+		(invention.flags.includes('bank') && !user.hasEquippedOrInBank([invention.item.id]))
+	) {
+		return false;
+	}
+	return true;
 }
 
 export async function inventionItemBoost({
@@ -663,14 +733,10 @@ export async function inventionItemBoost({
 	inventionID: InventionID;
 	duration: number;
 }): Promise<InventionItemBoostResult> {
-	const { materialCost, canAfford, invention } = await canAffordInventionBoost(user, inventionID, duration);
+	const { materialCost, canAfford, invention } = canAffordInventionBoost(user, inventionID, duration);
 
 	// If it has to be equipped, and isn't, or has to be in bank, and isn't, fail.
-	if (
-		user.user.disabled_inventions.includes(invention.id) ||
-		(invention.flags.includes('equipped') && !user.hasEquipped(invention.item.id)) ||
-		(invention.flags.includes('bank') && !user.hasEquippedOrInBank([invention.item.id]))
-	) {
+	if (!inventionEnabled(user, invention.id) || duration === 0) {
 		return { success: false };
 	}
 

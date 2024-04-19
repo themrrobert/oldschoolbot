@@ -13,6 +13,7 @@ import { bsoOpenables } from './bsoOpenables';
 import { ClueTiers } from './clues/clueTiers';
 import { Emoji, Events, MIMIC_MONSTER_ID } from './constants';
 import { clueHunterOutfit } from './data/CollectionsExport';
+import { inventionBoosts, inventionEnabled, InventionID, inventionItemBoost } from './invention/inventions';
 import { defaultFarmingContract } from './minions/farming';
 import { FarmingContract } from './minions/farming/types';
 import { shadeChestOpenables } from './shadesKeys';
@@ -151,9 +152,41 @@ for (const clueTier of ClueTiers) {
 					loot.add('Clue scroll (grandmaster)');
 				}
 			}
-			// Roll loot, and calculate how many bonus rolls were received:
-			loot.add(clueTier.table.open(totalRolls, user));
 			const extraClueRolls = totalRolls - quantity;
+
+			let inventionMessage = '';
+			let inventionExtraRolls = 0;
+
+			// Calculate Quantum transmuter loot rolls:
+			if (inventionEnabled(user, InventionID.QuantumTransmuter)) {
+				const howManyFit = inventionBoosts.quantumTransmuter.howManyFit(user, clueTier);
+				const inventionRolls = Math.min(howManyFit, quantity);
+				const inventionResult = await inventionItemBoost({
+					user,
+					inventionID: InventionID.QuantumTransmuter,
+					duration: inventionBoosts.quantumTransmuter.durationPerClue(clueTier) * inventionRolls
+				});
+				if (inventionResult.success) {
+					inventionMessage = `${inventionBoosts.quantumTransmuter.chanceForExtraRoll}% chance for extra rolls (${inventionResult.messages}).`;
+					let calamityCount = 0;
+					for (let i = 0; i < inventionRolls; i++) {
+						if (percentChance(inventionBoosts.quantumTransmuter.chanceForExtraRoll)) {
+							inventionExtraRolls++;
+						}
+						if (percentChance(inventionBoosts.quantumTransmuter.chanceForCalamity)) {
+							calamityCount++;
+							inventionExtraRolls--;
+						}
+					}
+					if (calamityCount > 0) {
+						inventionMessage += ` ${calamityCount} Calamit${
+							calamityCount === 1 ? 'y' : 'ies'
+						} triggered... You wonder what happened.`;
+					}
+				}
+			}
+
+			loot.add(clueTier.table.open(totalRolls, user));
 
 			let mimicNumber = 0;
 			if (clueTier.mimicChance) {
@@ -170,6 +203,14 @@ for (const clueTier of ClueTiers) {
 			}`;
 			if (extraClueRolls > 0) {
 				message += `${mimicNumber ? ' ' : ''}${extraClueRolls} extra rolls`;
+			}
+			if (inventionMessage !== '') {
+				message += `\n${inventionMessage}`;
+				if (inventionExtraRolls > 0) {
+					message += `\n${inventionExtraRolls}x Quantum transmuter bonus roll${
+						inventionExtraRolls === 1 ? '' : 's'
+					}.`;
+				}
 			}
 
 			const stats = await user.fetchStats({ openable_scores: true });
