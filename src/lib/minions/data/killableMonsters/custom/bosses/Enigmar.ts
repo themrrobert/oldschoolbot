@@ -61,6 +61,7 @@ export const Enigmar: CustomMonster = {
 	},
 	pohBoosts: {
 		pool: {
+			'Ornate rejuvenation pool': 5,
 			'Ancient rejuvenation pool': 10
 		}
 	},
@@ -97,8 +98,15 @@ export const Enigmar: CustomMonster = {
 		{
 			gearSetup: 'mage',
 			items: [
-				{ boostPercent: 8, itemID: itemID('Spellbound ring(i)') },
-				{ boostPercent: 4, itemID: itemID('Spellbound ring(i)') }
+				{ boostPercent: 8, itemID: itemID('Abyssal tome') },
+				{ boostPercent: 4, itemID: itemID('Virtus book') }
+			]
+		},
+		{
+			gearSetup: 'mage',
+			items: [
+				{ boostPercent: 6, itemID: itemID('Spellbound ring(i)') },
+				{ boostPercent: 3, itemID: itemID('Spellbound ring(i)') }
 			]
 		}
 	]

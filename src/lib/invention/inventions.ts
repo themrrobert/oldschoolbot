@@ -535,7 +535,7 @@ export const Inventions: readonly Invention[] = [
 		}),
 		itemCost: new Bank().add('Enigmatic orb').add('Magical artifact', 20),
 		flags: ['bank'],
-		inventionLevelNeeded: 120,
+		inventionLevelNeeded: 100,
 		usageCostMultiplier: 0.5
 	}
 ] as const;
