@@ -165,19 +165,21 @@ for (const clueTier of ClueTiers) {
 				const inventionResult = await inventionItemBoost({
 					user,
 					inventionID: InventionID.QuantumTransmuter,
-					duration: inventionBoosts.quantumTransmuter.durationPerClue(clueTier) * inventionRolls
+					duration: inventionBoosts.quantumTransmuter.durationPerClue(clueTier) * inventionRolls,
+					noLimit: true
 				});
 
 				if (inventionResult.success) {
 					inventionMessage = `${inventionBoosts.quantumTransmuter.chanceForExtraRoll}% chance for extra rolls (${inventionResult.messages}).`;
 
+					const calamityTable = inventionBoosts.quantumTransmuter.calamityTable.clone();
+					const rIdx = ClueTiers.length - ClueTiers.indexOf(clueTier);
+					calamityTable.totalWeight *= rIdx;
 					for (let i = 0; i < inventionRolls; i++) {
 						if (percentChance(inventionBoosts.quantumTransmuter.chanceForExtraRoll)) {
 							inventionExtraRolls++;
 						}
-						let calamityChance = inventionBoosts.quantumTransmuter.chanceForCalamity;
-						const rIdx = ClueTiers.length - ClueTiers.indexOf(clueTier);
-						calamityChance /= rIdx;
+						const calamityChance = inventionBoosts.quantumTransmuter.chanceForCalamity;
 						if (percentChance(calamityChance)) {
 							calamityCount++;
 						}
@@ -187,21 +189,21 @@ for (const clueTier of ClueTiers) {
 							calamityCount === 1 ? 'y' : 'ies'
 						} triggered... You wonder what happened.`;
 					}
+					// Calc calamities
+					const elderElligibleChance = await inventionBoosts.quantumTransmuter.calamityElderChance(user);
+					for (let i = 0; i < calamityCount; i++) {
+						if (elderElligibleChance > 0) {
+							if (roll(elderElligibleChance)) {
+								loot.add('Reward casket (elder)');
+								continue;
+							}
+						}
+						loot.add(calamityTable.roll());
+					}
 				}
 			}
 
 			loot.add(clueTier.table.open(totalRolls, user));
-
-			const elderElligibleChance = await inventionBoosts.quantumTransmuter.calamityElderChance(user);
-			for (let i = 0; i < calamityCount; i++) {
-				if (elderElligibleChance > 0) {
-					if (roll(elderElligibleChance)) {
-						loot.add('Reward casket (elder)');
-						continue;
-					}
-				}
-				loot.add(inventionBoosts.quantumTransmuter.calamityTable.roll());
-			}
 
 			let mimicNumber = 0;
 			if (clueTier.mimicChance) {

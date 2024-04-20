@@ -153,12 +153,12 @@ export const inventionBoosts = {
 		chanceForExtraRoll: 100,
 		chanceForCalamity: 8,
 		calamityTable: new LootTable()
-			.add('Reward casket (beginner)', 33)
-			.add('Reward casket (easy)', 1, 30)
-			.add('Reward casket (medium)', 1, 25)
-			.add('Reward casket (hard)', 1, 22)
-			.add('Reward casket (elite)', 1, 18)
-			.add('Reward casket (master)', 1, 10)
+			.add('Reward casket (beginner)', 15)
+			.add('Reward casket (easy)', 1, 15)
+			.add('Reward casket (medium)', 1, 13)
+			.add('Reward casket (hard)', 1, 11)
+			.add('Reward casket (elite)', 1, 8)
+			.add('Reward casket (master)', 1, 6)
 			.add('Reward casket (grandmaster)', 1, 3),
 		calamityElderChance: async (user: MUser) => {
 			const stats = await user.fetchStats({ openable_scores: true });
@@ -181,8 +181,8 @@ export const inventionBoosts = {
 		},
 		howManyFit: (user: MUser, clue: ClueTier) => {
 			const dur = inventionBoosts.quantumTransmuter.durationPerClue(clue);
-			const multiplier = 100;
-			const { materialCost } = calcInventionCost(InventionID.QuantumTransmuter, multiplier * dur);
+			const multiplier = 10_000;
+			const { materialCost } = calcInventionCost(InventionID.QuantumTransmuter, multiplier * dur, true);
 			for (const material of Object.keys(materialCost.bank) as (keyof IMaterialBank)[]) {
 				materialCost.bank[material]! /= multiplier;
 			}
@@ -546,8 +546,8 @@ export const Inventions: readonly Invention[] = [
 		item: getOSItem('Quantum transmuter'),
 		materialTypeBank: new MaterialBank({
 			treasured: 2,
-			mysterious: 6,
-			precious: 2
+			mysterious: 7,
+			precious: 1
 		}),
 		itemCost: new Bank().add('Enigmatic orb').add('Magical artifact', 20),
 		flags: ['bank'],
@@ -694,7 +694,8 @@ type InventionItemBoostResult =
 
 export function calcInventionCost(
 	inventionID: InventionID,
-	duration: number
+	duration: number,
+	noLimit: boolean = false
 ): { invention: Invention; materialCost: MaterialBank } {
 	const invention = Inventions.find(i => i.id === inventionID)!;
 	if (invention.usageCostMultiplier === null) {
@@ -702,7 +703,7 @@ export function calcInventionCost(
 	}
 	const materialCost = new MaterialBank();
 	let multiplier = Math.ceil(duration / (Time.Minute * 3));
-	multiplier = clamp(Math.floor(multiplier * invention.usageCostMultiplier), 1, 1000);
+	if (!noLimit) multiplier = clamp(Math.floor(multiplier * invention.usageCostMultiplier), 1, 1000);
 	materialCost.add(invention.materialTypeBank.clone().multiply(multiplier));
 	for (const [mat, boosts] of materialBoosts) {
 		if (!materialCost.has(mat)) continue;
@@ -716,9 +717,14 @@ export function calcInventionCost(
 
 	return { invention, materialCost };
 }
-export function canAffordInventionBoost(user: MUser, inventionID: InventionID, duration: number) {
+export function canAffordInventionBoost(
+	user: MUser,
+	inventionID: InventionID,
+	duration: number,
+	noLimit: boolean = false
+) {
 	const materialsOwned = user.materialsOwned();
-	const { invention, materialCost } = calcInventionCost(inventionID, duration);
+	const { invention, materialCost } = calcInventionCost(inventionID, duration, noLimit);
 
 	return {
 		invention,
@@ -743,14 +749,20 @@ export function inventionEnabled(user: MUser, inventionID: InventionID) {
 export async function inventionItemBoost({
 	user,
 	inventionID,
-	duration
+	duration,
+	noLimit
 }: {
 	user: MUser;
 	inventionID: InventionID;
 	duration: number;
+	noLimit?: boolean;
 }): Promise<InventionItemBoostResult> {
-	const { materialCost, canAfford, invention } = canAffordInventionBoost(user, inventionID, duration);
-
+	const { materialCost, canAfford, invention } = canAffordInventionBoost(
+		user,
+		inventionID,
+		duration,
+		noLimit ?? false
+	);
 	// If it has to be equipped, and isn't, or has to be in bank, and isn't, fail.
 	if (!inventionEnabled(user, invention.id) || duration === 0) {
 		return { success: false };
