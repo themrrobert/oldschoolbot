@@ -34,12 +34,14 @@ type RatelimitConfig = {
 	max: number;
 };
 
-type RatelimitType = 'random_events' | 'global_buttons' | 'stats_command';
+type RatelimitType = 'random_events' | 'global_buttons' | 'stats_command' | 'megaduck_command' | 'event_command_limit';
 
 const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 	global_buttons: { windowSeconds: 2, max: 1 },
 	random_events: { windowSeconds: TTL.Hour * 3, max: 5 },
-	stats_command: { windowSeconds: 5, max: 1 }
+	stats_command: { windowSeconds: 5, max: 1 },
+	megaduck_command: { windowSeconds: 3, max: 1 },
+	event_command_limit: { windowSeconds: TTL.Hour / 2, max: 2 }
 } as const;
 
 const BotKeys = RedisKeys[BOT_TYPE];
