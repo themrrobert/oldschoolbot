@@ -627,6 +627,13 @@ export interface SpecificQuestOptions extends ActivityTaskOptions {
 	questID: number;
 }
 
+export interface FoolEventOptions extends ActivityTaskOptions {
+	type: 'FoolEvent';
+	target: UserID;
+	targetChannelId: string;
+	command: 'us' | 'trick' | 'fool';
+}
+
 export type ActivityTaskData =
 	| MonsterActivityTaskOptions
 	| WoodcuttingActivityTaskOptions
@@ -651,6 +658,7 @@ export type ActivityTaskData =
 	| AgilityActivityTaskOptions
 	| InfernoOptions
 	| TOAOptions
+	| FoolEventOptions
 	| NexTaskOptions
 	| ZalcanoActivityTaskOptions
 	| TheatreOfBloodTaskOptions

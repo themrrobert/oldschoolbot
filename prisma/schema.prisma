@@ -486,6 +486,8 @@ model User {
 
   bso_mystery_trail_current_step_id Int?
 
+  fool_event_data           Json   @default("{}") @db.JsonB
+
   store_bitfield Int[] @default([])
 
   farmingPatches_herb       Json? @map("farmingPatches.herb") @db.Json
@@ -530,8 +532,6 @@ model User {
   cl_array                      Int[]    @default([])
   completed_achievement_diaries String[] @default([])
 
-  // Holiday / event data should be stored here so we don't have to change the database structure for each event.
-  event_data                    Json      @default("{}") @db.JsonB
   @@index([id, last_command_date])
   @@map("users")
 }
@@ -1262,6 +1262,7 @@ enum activity_type_enum {
   CreateForestersRations
   SnoozeSpellActive
   Buy
+  FoolEvent
 }
 
 enum xp_gains_skill_enum {
