@@ -51,6 +51,8 @@ src/prisma/clients
 src/prisma/migrations
 
 .DS_Store
+.aiignore
+.noai
 
 itx
 
