@@ -49,7 +49,7 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 	stats_command: { windowSeconds: 5, max: 1 },
 	delay_member_fetch: { windowSeconds: TTL.Hour, max: 1 },
 	megaduck_command: { windowSeconds: 3, max: 1 },
-	event_command_limit: { windowSeconds: TTL.Minute * 10, max: 2 },
+	event_command_limit: { windowSeconds: TTL.Minute * 20, max: 2 },
 	foolus_limit: { windowSeconds: TTL.Minute * 5, max: 5 }
 } as const;
 
