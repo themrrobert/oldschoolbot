@@ -49,8 +49,8 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 	stats_command: { windowSeconds: 5, max: 1 },
 	delay_member_fetch: { windowSeconds: TTL.Hour, max: 1 },
 	megaduck_command: { windowSeconds: 3, max: 1 },
-	event_command_limit: { windowSeconds: TTL.Hour / 2, max: 3 },
-	foolus_limit: { windowSeconds: TTL.Hour / 4, max: 3 }
+	event_command_limit: { windowSeconds: TTL.Minute * 10, max: 2 },
+	foolus_limit: { windowSeconds: TTL.Minute * 5, max: 5 }
 } as const;
 
 const BotKeys = RedisKeys[BOT_TYPE];
@@ -75,7 +75,7 @@ class CacheManager {
 		}
 	}
 
-	private async setString(key: string, value: string, ttlSeconds: number) {
+	public async setString(key: string, value: string, ttlSeconds: number) {
 		await this.client.set(key, value, 'EX', ttlSeconds);
 	}
 
@@ -88,7 +88,7 @@ class CacheManager {
 		return raw ? JSON.parse(raw) : null;
 	}
 
-	private async getString(key: string): Promise<string | null> {
+	public async getString(key: string): Promise<string | null> {
 		return this.client.get(key);
 	}
 
