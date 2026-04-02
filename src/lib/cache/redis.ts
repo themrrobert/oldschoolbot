@@ -47,8 +47,8 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 	random_events: { windowSeconds: TTL.Hour * 3, max: 5 },
 	stats_command: { windowSeconds: 5, max: 1 },
 	megaduck_command: { windowSeconds: 3, max: 1 },
-	event_command_limit: { windowSeconds: TTL.Hour / 2, max: 2 },
-	foolus_limit: { windowSeconds: TTL.Hour / 4, max: 2 }
+	event_command_limit: { windowSeconds: TTL.Hour / 2, max: 10 },
+	foolus_limit: { windowSeconds: TTL.Hour / 4, max: 3 }
 } as const;
 
 const BotKeys = RedisKeys[BOT_TYPE];
