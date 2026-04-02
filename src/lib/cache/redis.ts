@@ -38,6 +38,7 @@ type RatelimitType =
 	| 'random_events'
 	| 'global_buttons'
 	| 'stats_command'
+	| 'delay_member_fetch'
 	| 'megaduck_command'
 	| 'event_command_limit'
 	| 'foolus_limit';
@@ -46,6 +47,7 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 	global_buttons: { windowSeconds: 2, max: 1 },
 	random_events: { windowSeconds: TTL.Hour * 3, max: 5 },
 	stats_command: { windowSeconds: 5, max: 1 },
+	delay_member_fetch: { windowSeconds: TTL.Hour, max: 1 },
 	megaduck_command: { windowSeconds: 3, max: 1 },
 	event_command_limit: { windowSeconds: TTL.Hour / 2, max: 3 },
 	foolus_limit: { windowSeconds: TTL.Hour / 4, max: 3 }
@@ -167,8 +169,43 @@ class CacheManager {
 		return this.setJson(BotKeys.GuildSettings(guildId), newGuild);
 	}
 
-	async getMember(guildId: string, userId: string) {
-		return this.getJson<IMember>(RedisKeys.Discord.Member(guildId, userId));
+	async getMember({
+		guildId,
+		userId,
+		cacheOnly,
+		refreshCache,
+		externalServer
+	}: {
+		guildId: string;
+		userId: string;
+		cacheOnly?: boolean;
+		refreshCache?: boolean;
+		externalServer?: boolean;
+	}): Promise<IMember | null> {
+		// If we cache this guild, lets check it
+		const cachedServer = globalConfig.guildIdsToCache.includes(guildId);
+		if (cachedServer) {
+			const key = `${guildId}:${userId}`;
+			if (refreshCache) return await globalClient.fetchMember({ guildId, userId });
+			const delayCheck = await Cache.tryRatelimit(key, 'delay_member_fetch');
+			if (cacheOnly || !delayCheck.success) {
+				// If we're under time out, it could be assumed to be cached, but...
+				const cacheMember = await this.getJson<IMember>(RedisKeys.Discord.Member(guildId, userId));
+				if (cacheMember) {
+					return cacheMember;
+				} else {
+					if (cacheOnly) return null;
+					const member = await globalClient.fetchMember({ guildId, userId });
+					await Cache.setMember(member);
+					return member;
+				}
+			}
+		}
+		if (cachedServer || externalServer) {
+			// We can fetch now
+			return await globalClient.fetchMember({ guildId, userId });
+		}
+		return null;
 	}
 
 	async getChannel(channelId: string): Promise<IChannel> {

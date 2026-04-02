@@ -24,7 +24,7 @@ export async function getUsersPerkTier(user: MUser): Promise<PerkTier | 0> {
 	) {
 		eligibleTiers.push(PerkTier.Two);
 	} else {
-		const member = await Cache.getMember(globalConfig.supportServerID, user.id);
+		const member = await Cache.getMember({ guildId: globalConfig.supportServerID, userId: user.id });
 		if (member && [Roles.Booster].some(roleID => member.roles.includes(roleID))) {
 			eligibleTiers.push(PerkTier.One);
 		}
