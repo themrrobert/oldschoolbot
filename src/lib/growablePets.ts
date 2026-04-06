@@ -1,8 +1,8 @@
 import { randFloat, roll } from '@oldschoolgg/rng';
 import { Time } from '@oldschoolgg/toolkit';
-import { Bank, Items, resolveItems } from 'oldschooljs';
+import {Bank, itemID, Items, resolveItems} from 'oldschooljs';
 
-import { EITEMS } from '@/lib/easter.js';
+import { getMagneggHatchMessage } from '@/lib/easter.js';
 import type { ActivityTaskOptions } from '@/lib/types/minions.js';
 
 export const kittens = resolveItems([
@@ -40,10 +40,6 @@ export const growablePets: GrowablePet[] = [
 		stages: resolveItems(['Magic kitten', 'Magic cat'])
 	},
 	{
-		growthRate: (Time.Hour * 6) / Time.Minute,
-		stages: [EITEMS.Magnegg, EITEMS.Magnabbit]
-	},
-	{
 		growthRate: (Time.Hour * 2) / Time.Minute,
 		stages: resolveItems(['Zamorak egg', 'Baby zamorak hawk', 'Juvenile zamorak hawk', 'Zamorak hawk'])
 	},
@@ -58,6 +54,12 @@ export const growablePets: GrowablePet[] = [
 	{
 		growthRate: (Time.Hour * 2) / Time.Minute,
 		stages: resolveItems(['Penguin egg', 'Skip'])
+	},
+	{
+		growthRate: (Time.Hour * 6) / Time.Minute,
+		stages: resolveItems(['Magnegg', 'Magnabbit']),
+		shinyChance: 50,
+		shinyVersion: Items.getOrThrow('Radiant Magnabbit').id
 	}
 ];
 
@@ -100,7 +102,11 @@ export async function handleGrowablePetGrowth(user: MUser, data: ActivityTaskOpt
 				minion_equippedPet: nextPet
 			}
 		});
-		messages.push(`Your ${Items.getOrThrow(equippedPet).name} grew into a ${Items.getOrThrow(nextPet).name}!`);
+		if (equippedPet === itemID('Magnegg') && nextPet === itemID('Magnabbit')) {
+			messages.push(getMagneggHatchMessage());
+		} else {
+			messages.push(`Your Magnegg grew into a Magnabbi!!`);
+		}
 	}
 }
 
