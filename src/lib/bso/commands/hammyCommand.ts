@@ -1,6 +1,6 @@
 import { randArrItem, roll } from '@oldschoolgg/rng';
 import { Emoji } from '@oldschoolgg/toolkit';
-import { Bank, Items } from 'oldschooljs';
+import { Bank, Items, resolveItems } from 'oldschooljs';
 
 // roll(chanceToDouble) to decide if the item doubles
 const chanceToDouble = 100;
@@ -39,9 +39,14 @@ const hammyDoubleMessages = [
 	"Hammy takes your {item} while you aren't looking and runs to the casino. He comes back rich and hands you an extra {item} for your trouble."
 ];
 
+const hammyRefusesToEat = resolveItems(['Magnegg', 'Magnabbit', 'Radiant Magnabbit']);
+
 export async function feedHammyCommand(interaction: MInteraction, user: MUser, itemName: string) {
 	const firstItem = Items.getItem(itemName);
 	if (!firstItem) return "That's not a valid item.";
+	if (hammyRefusesToEat.includes(firstItem.id)) {
+		return `Hammy refuses to eat ${firstItem.name}. He likes being alive.`;
+	}
 
 	await interaction.confirmation(
 		`${user}, are you sure you want to give ${firstItem.name} to Hammy? You probably won't get it back.`
