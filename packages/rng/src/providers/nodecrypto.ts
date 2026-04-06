@@ -16,9 +16,9 @@ export class NodeCryptoRNG implements RNGProvider {
 	}
 
 	rand(): number {
-		const buf = randomBytes(6); // 48 bits
-		const int = buf.readUIntBE(0, 6);
-		return int / 0x1000000000000;
+		const buf = randomBytes(8); // 64 bits
+		const x = buf.readBigUInt64BE() >> 12n; // 64 - 12 = 52
+		return Number(x) / 2 ** 52; // divide by 2^52 to get a number between 0 and 1
 	}
 
 	shuffle<T>(array: T[]): T[] {
