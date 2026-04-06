@@ -2,6 +2,7 @@ import { randFloat, roll } from '@oldschoolgg/rng';
 import { Time } from '@oldschoolgg/toolkit';
 import { Bank, Items, resolveItems } from 'oldschooljs';
 
+import { EITEMS } from '@/lib/easter.js';
 import type { ActivityTaskOptions } from '@/lib/types/minions.js';
 
 export const kittens = resolveItems([
@@ -37,6 +38,10 @@ export const growablePets: GrowablePet[] = [
 	{
 		growthRate: (Time.Hour * 5) / Time.Minute,
 		stages: resolveItems(['Magic kitten', 'Magic cat'])
+	},
+	{
+		growthRate: (Time.Hour * 6) / Time.Minute,
+		stages: [EITEMS.Magnegg, EITEMS.Magnabbit]
 	},
 	{
 		growthRate: (Time.Hour * 2) / Time.Minute,
