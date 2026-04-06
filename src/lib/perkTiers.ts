@@ -1,22 +1,12 @@
-import { BitField, globalConfig, PerkTier, Roles } from '@/lib/constants.js';
-
-export const allPerkBitfields: BitField[] = [
-	BitField.IsPatronTier6,
-	BitField.IsPatronTier5,
-	BitField.IsPatronTier4,
-	BitField.IsPatronTier3,
-	BitField.IsPatronTier2,
-	BitField.IsPatronTier1,
-	BitField.HasPermanentTierOne,
-	BitField.BothBotsMaxedFreeTierOnePerks
-];
+import { BitField, PerkTier } from '@/lib/constants.js';
 
 export async function getUsersPerkTier(user: MUser): Promise<PerkTier | 0> {
-	if (user.isMod()) {
-		return PerkTier.Four;
-	}
 
 	const eligibleTiers = [];
+	if (user.isMod()) {
+		eligibleTiers.push( PerkTier.Four);
+	}
+
 	if (
 		user.bitfield.includes(BitField.IsPatronTier1) ||
 		user.bitfield.includes(BitField.HasPermanentTierOne) ||
@@ -24,10 +14,7 @@ export async function getUsersPerkTier(user: MUser): Promise<PerkTier | 0> {
 	) {
 		eligibleTiers.push(PerkTier.Two);
 	} else {
-		const member = await Cache.getMember({ guildId: globalConfig.supportServerID, userId: user.id });
-		if (member && [Roles.Booster].some(roleID => member.roles.includes(roleID))) {
-			eligibleTiers.push(PerkTier.One);
-		}
+		eligibleTiers.push(PerkTier.One);
 	}
 
 	const roboChimpCached = await Cache.getRoboChimpUser(user.id);
