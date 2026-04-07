@@ -54,7 +54,7 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 	event_command_limit: { windowSeconds: TTL.Minute * 20, max: 2 },
 	foolus_limit: { windowSeconds: TTL.Minute * 5, max: 5 },
 	help_spam_limit: { windowSeconds: TTL.Hour / 2, max: 1 },
-	degen_timeout: { windowSeconds: TTL.Hour, max: 1 }
+	degen_timeout: { windowSeconds: TTL.Hour / 2, max: 2 }
 } as const;
 
 const BotKeys = RedisKeys[BOT_TYPE];
