@@ -1,10 +1,9 @@
 import { BitField, PerkTier } from '@/lib/constants.js';
 
 export async function getUsersPerkTier(user: MUser): Promise<PerkTier | 0> {
-
 	const eligibleTiers = [];
 	if (user.isMod()) {
-		eligibleTiers.push( PerkTier.Four);
+		eligibleTiers.push(PerkTier.Four);
 	}
 
 	if (
