@@ -19,7 +19,6 @@ import { isEmpty } from 'remeda';
 import type { TameActivity } from '@/prisma/main.js';
 import { ClueTiers } from '@/lib/clues/clueTiers.js';
 import { BitField } from '@/lib/constants.js';
-import { getPassiveEasterTripMessage, rollPassiveEasterLoot } from '@/lib/easter.js';
 import { handlePassiveImplings } from '@/lib/implings.js';
 import { trackLoot } from '@/lib/lootTrack.js';
 import { allOpenables } from '@/lib/openables.js';
@@ -48,16 +47,6 @@ export async function handleFinish({
 	const previousTameCl = tame.totalLoot.clone();
 	const crateRes = handleCrateSpawns(user, activity.duration);
 	if (crateRes !== null) lootToAdd.add(crateRes);
-	const easterLoot = rollPassiveEasterLoot(user, activity.duration, true, tame);
-	if (easterLoot) {
-		lootToAdd.add(easterLoot.loot);
-		results.push(getPassiveEasterTripMessage(easterLoot));
-		if (easterLoot.petBoost) {
-			results.push('\n\n🥚 Yummy! I guess it was worth it after all!');
-		} else {
-			results.push('\n\n🍫🥚 Hmm... Im hungry');
-		}
-	}
 
 	await prisma.tame.update({
 		where: {
