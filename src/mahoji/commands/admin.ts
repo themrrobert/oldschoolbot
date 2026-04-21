@@ -865,25 +865,21 @@ ${META_CONSTANTS.RENDERED_STR}`
 
 			const tradeRows = await prisma.$queryRawUnsafe<
 				{
+					id: string;
 					date: Date;
 					sender_id: string;
 					recipient_id: string;
-					sender_username: string;
-					recipient_username: string;
 					items_sent: ItemBank | null;
 					items_received: ItemBank | null;
 				}[]
 			>(`SELECT
+	e.id::text AS id,
 	e.date,
 	e.sender::text AS sender_id,
 	e.recipient::text AS recipient_id,
-	s.username AS sender_username,
-	r.username AS recipient_username,
 	e.items_sent,
 	e.items_received
 FROM economy_transaction e
-INNER JOIN users s ON e.sender = s.id::bigint
-INNER JOIN users r ON e.recipient = r.id::bigint
 WHERE
 	e.date >= '${sinceDate.toISOString()}'
 	AND (e.sender = ${BigInt(targetUser.id)} OR e.recipient = ${BigInt(targetUser.id)})
@@ -900,38 +896,75 @@ ORDER BY e.date DESC;`);
 			for (const row of tradeRows) {
 				const eggsSent = Number((row.items_sent ?? {})[wabbitEggs.id] ?? 0);
 				const eggsReceived = Number((row.items_received ?? {})[wabbitEggs.id] ?? 0);
-
-				if (eggsSent > 0) {
-					if (row.sender_id === targetUser.id) totalSoldByTargetUser += eggsSent;
-					if (row.recipient_id === targetUser.id) totalBoughtByTargetUser += eggsSent;
-					tradeLines.push(
-						`${row.date.toLocaleString('en-US')} | Seller: ${row.sender_username} | Buyer: ${
-							row.recipient_username
-						} | Wabbit eggs: ${eggsSent.toLocaleString()}`
-					);
+				let soldInTrade = 0;
+				let boughtInTrade = 0;
+				if (row.sender_id === targetUser.id) {
+					soldInTrade += eggsSent;
+					boughtInTrade += eggsReceived;
 				}
-
-				if (eggsReceived > 0) {
-					if (row.recipient_id === targetUser.id) totalSoldByTargetUser += eggsReceived;
-					if (row.sender_id === targetUser.id) totalBoughtByTargetUser += eggsReceived;
+				if (row.recipient_id === targetUser.id) {
+					boughtInTrade += eggsSent;
+					soldInTrade += eggsReceived;
+				}
+				totalSoldByTargetUser += soldInTrade;
+				totalBoughtByTargetUser += boughtInTrade;
+				const tradeParts: string[] = [];
+				if (soldInTrade > 0) tradeParts.push(`sold ${soldInTrade.toLocaleString()}`);
+				if (boughtInTrade > 0) tradeParts.push(`bought ${boughtInTrade.toLocaleString()}`);
+				if (tradeParts.length > 0) {
 					tradeLines.push(
-						`${row.date.toLocaleString('en-US')} | Seller: ${row.recipient_username} | Buyer: ${
-							row.sender_username
-						} | Wabbit eggs: ${eggsReceived.toLocaleString()}`
+						`${row.date.toLocaleString('en-US')} | ${row.id.slice(-6)} | ${tradeParts.join(' | ')}`
 					);
 				}
 			}
 
+			const geSoldSummary = await prisma.gETransaction.aggregate({
+				where: {
+					created_at: {
+						gte: sinceDate
+					},
+					sell_listing: {
+						user_id: targetUser.id,
+						item_id: wabbitEggs.id
+					}
+				},
+				_sum: {
+					quantity_bought: true
+				}
+			});
+			const geBoughtSummary = await prisma.gETransaction.aggregate({
+				where: {
+					created_at: {
+						gte: sinceDate
+					},
+					buy_listing: {
+						user_id: targetUser.id,
+						item_id: wabbitEggs.id
+					}
+				},
+				_sum: {
+					quantity_bought: true
+				}
+			});
+			const totalGESoldByTargetUser = geSoldSummary._sum.quantity_bought ?? 0;
+			const totalGEBoughtByTargetUser = geBoughtSummary._sum.quantity_bought ?? 0;
+
 			let magneggRate = clAdjustedDroprate(targetUser, 'Magnegg', magneggStartingRate, magneggScalingRate);
 			const startingMagneggRate = magneggRate;
+			let confirmationStr = `Are you sure you want to roll ${rollQuantity.toLocaleString()} Easter turn-ins for ${
+				targetUser.usernameOrMention
+			}? Starting Magnegg rate: 1 in ${startingMagneggRate.toLocaleString()}.`;
+			if (shouldRemoveWabbitEggs) {
+				confirmationStr += ` ***This will also remove ${rollQuantity.toLocaleString()}x Wabbit eggs from their bank.***`;
+			}
+			if (tradeLines.length !== 0) {
+				confirmationStr += `\n\nWabbit egg trades since April 20, 2026:\n${tradeLines.join('\n')}\n\nTotals:\nSold: ${totalSoldByTargetUser.toLocaleString()}\nBought: ${totalBoughtByTargetUser.toLocaleString()}`;
+			}
+			if (totalGEBoughtByTargetUser > 0 || totalGESoldByTargetUser > 0) {
+				confirmationStr += `\n\nG.E. Wabbit egg totals since April 20, 2026:\nSold: ${totalGESoldByTargetUser.toLocaleString()}\nBought: ${totalGEBoughtByTargetUser.toLocaleString()}`;
+			}
 			await interaction.confirmation(
-				`Are you sure you want to roll ${rollQuantity.toLocaleString()} Easter turn-ins for ${
-					targetUser.usernameOrMention
-				}? Starting Magnegg rate: 1 in ${startingMagneggRate.toLocaleString()}.${
-					shouldRemoveWabbitEggs
-						? ` This will also remove ${rollQuantity.toLocaleString()}x Wabbit eggs from their bank.`
-						: ''
-				}`
+				confirmationStr
 			);
 
 			const loot = new Bank();
@@ -941,20 +974,14 @@ ORDER BY e.date DESC;`);
 					magneggRate *= magneggScalingRate;
 				}
 			}
+			const cost = new Bank();
+			if (shouldRemoveWabbitEggs) cost.add(wabbitEggs.id, rollQuantity);
 
-			if (shouldRemoveWabbitEggs && loot.length > 0) {
-				await targetUser.transactItems({
-					itemsToRemove: new Bank().add(wabbitEggs.id, rollQuantity),
-					itemsToAdd: loot,
-					collectionLog: true
-				});
-			} else if (shouldRemoveWabbitEggs) {
-				await targetUser.transactItems({
-					itemsToRemove: new Bank().add(wabbitEggs.id, rollQuantity)
-				});
-			} else if (loot.length > 0) {
-				await targetUser.addItemsToBank({ items: loot, collectionLog: true });
-			}
+			await targetUser.transactItems({
+				itemsToRemove: cost,
+				itemsToAdd: loot,
+				collectionLog: true
+			});
 
 			await globalClient.sendMessage(Channel.BotLogs, {
 				content: `${adminUser.logName} ran admin etn on ${targetUser.logName}: rolls=${rollQuantity.toLocaleString()}, remove_wabbit_eggs=${shouldRemoveWabbitEggs}, loot=${loot}`
@@ -963,17 +990,6 @@ ORDER BY e.date DESC;`);
 			let output = `${targetUser.usernameOrMention} Easter turn-in results:
 Wabbit eggs turned in: ${rollQuantity.toLocaleString()}
 Loot: ${loot}`;
-
-			if (tradeLines.length === 0) {
-				output += `\n\nNo Wabbit eggs trades were found for ${targetUser.usernameOrMention} since April 20, 2026.`;
-			} else {
-				output += `\n\nWabbit egg trades since April 20, 2026:
-${tradeLines.join('\n')}
-
-Totals:
-Sold by ${targetUser.usernameOrMention}: ${totalSoldByTargetUser.toLocaleString()}
-Bought by ${targetUser.usernameOrMention}: ${totalBoughtByTargetUser.toLocaleString()}`;
-			}
 
 			return interaction.returnStringOrFile(output);
 		}
