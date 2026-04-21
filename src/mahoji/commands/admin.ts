@@ -1,6 +1,6 @@
 import { dateFm } from '@oldschoolgg/discord';
 import type { GearSetup } from '@oldschoolgg/gear';
-import { randArrItem } from '@oldschoolgg/rng';
+import { randArrItem, roll } from '@oldschoolgg/rng';
 import {
 	calcPerHour,
 	calcWhatPercent,
@@ -20,6 +20,7 @@ import { type ClientStorage, economy_transaction_type } from '@/prisma/main.js';
 import { itemOption } from '@/discord/presetCommandOptions.js';
 import { bulkUpdateCommands } from '@/discord/utils.js';
 import { BadgesEnum, BitField, BitFieldData, badges, Channel, globalConfig, META_CONSTANTS } from '@/lib/constants.js';
+import { clAdjustedDroprate } from '@/lib/bso/bsoUtil.js';
 import { GrandExchange } from '@/lib/grandExchange.js';
 import { syncCustomPrices } from '@/lib/preStartup.js';
 import { countUsersWithItemInCl } from '@/lib/rawSql.js';
@@ -602,6 +603,32 @@ export const adminCommand = defineCommand({
 					description: 'The reason'
 				}
 			]
+		},
+		{
+			type: 'Subcommand',
+			name: 'etn',
+			description: 'Roll Easter turn-ins for a target user.',
+			options: [
+				{
+					type: 'User',
+					name: 'user',
+					description: 'The target user.',
+					required: true
+				},
+				{
+					type: 'Integer',
+					name: 'quantity',
+					description: 'The number of Wabbit eggs to turn in.',
+					required: true,
+					min_value: 1
+				},
+				{
+					type: 'Boolean',
+					name: 'remove_wabbit_eggs',
+					description: 'Whether to remove the turned in Wabbit eggs from the target user.',
+					required: false
+				}
+			]
 		}
 	],
 	run: async ({ options, userId, interaction, guildId }) => {
@@ -817,6 +844,138 @@ ${META_CONSTANTS.RENDERED_STR}`
 
 			await user.addItemsToBank({ items, collectionLog: false });
 			return `Gave ${items} to ${user.mention}`;
+		}
+
+		if (options.etn) {
+			const targetUser = await mUserFetch(options.etn.user.user.id);
+			const rollQuantity = options.etn.quantity;
+			const shouldRemoveWabbitEggs = Boolean(options.etn.remove_wabbit_eggs);
+			const wabbitEggs = Items.getOrThrow('Wabbit eggs');
+			const sinceDate = new Date('2026-04-20T00:00:00.000Z');
+			const magneggStartingRate = 50;
+			const magneggScalingRate = 1.125;
+
+			await targetUser.sync();
+
+			if (shouldRemoveWabbitEggs && targetUser.bank.amount(wabbitEggs.id) < rollQuantity) {
+				return `${targetUser.usernameOrMention} does not have enough Wabbit eggs. They have ${targetUser.bank
+					.amount(wabbitEggs.id)
+					.toLocaleString()}, but ${rollQuantity.toLocaleString()} are required.`;
+			}
+
+			const tradeRows = await prisma.$queryRawUnsafe<
+				{
+					date: Date;
+					sender_id: string;
+					recipient_id: string;
+					sender_username: string;
+					recipient_username: string;
+					items_sent: ItemBank | null;
+					items_received: ItemBank | null;
+				}[]
+			>(`SELECT
+	e.date,
+	e.sender::text AS sender_id,
+	e.recipient::text AS recipient_id,
+	s.username AS sender_username,
+	r.username AS recipient_username,
+	e.items_sent,
+	e.items_received
+FROM economy_transaction e
+INNER JOIN users s ON e.sender = s.id::bigint
+INNER JOIN users r ON e.recipient = r.id::bigint
+WHERE
+	e.date >= '${sinceDate.toISOString()}'
+	AND (e.sender = ${BigInt(targetUser.id)} OR e.recipient = ${BigInt(targetUser.id)})
+	AND (
+		COALESCE((e.items_sent->>'${wabbitEggs.id}')::int, 0) > 0
+		OR COALESCE((e.items_received->>'${wabbitEggs.id}')::int, 0) > 0
+	)
+ORDER BY e.date DESC;`);
+
+			const tradeLines: string[] = [];
+			let totalSoldByTargetUser = 0;
+			let totalBoughtByTargetUser = 0;
+
+			for (const row of tradeRows) {
+				const eggsSent = Number((row.items_sent ?? {})[wabbitEggs.id] ?? 0);
+				const eggsReceived = Number((row.items_received ?? {})[wabbitEggs.id] ?? 0);
+
+				if (eggsSent > 0) {
+					if (row.sender_id === targetUser.id) totalSoldByTargetUser += eggsSent;
+					if (row.recipient_id === targetUser.id) totalBoughtByTargetUser += eggsSent;
+					tradeLines.push(
+						`${row.date.toLocaleString('en-US')} | Seller: ${row.sender_username} | Buyer: ${
+							row.recipient_username
+						} | Wabbit eggs: ${eggsSent.toLocaleString()}`
+					);
+				}
+
+				if (eggsReceived > 0) {
+					if (row.recipient_id === targetUser.id) totalSoldByTargetUser += eggsReceived;
+					if (row.sender_id === targetUser.id) totalBoughtByTargetUser += eggsReceived;
+					tradeLines.push(
+						`${row.date.toLocaleString('en-US')} | Seller: ${row.recipient_username} | Buyer: ${
+							row.sender_username
+						} | Wabbit eggs: ${eggsReceived.toLocaleString()}`
+					);
+				}
+			}
+
+			let magneggRate = clAdjustedDroprate(targetUser, 'Magnegg', magneggStartingRate, magneggScalingRate);
+			const startingMagneggRate = magneggRate;
+			await interaction.confirmation(
+				`Are you sure you want to roll ${rollQuantity.toLocaleString()} Easter turn-ins for ${
+					targetUser.usernameOrMention
+				}? Starting Magnegg rate: 1 in ${startingMagneggRate.toLocaleString()}.${
+					shouldRemoveWabbitEggs
+						? ` This will also remove ${rollQuantity.toLocaleString()}x Wabbit eggs from their bank.`
+						: ''
+				}`
+			);
+
+			const loot = new Bank();
+			for (let i = 0; i < rollQuantity; i++) {
+				if (roll(magneggRate)) {
+					loot.add('Magnegg');
+					magneggRate *= magneggScalingRate;
+				}
+			}
+
+			if (shouldRemoveWabbitEggs && loot.length > 0) {
+				await targetUser.transactItems({
+					itemsToRemove: new Bank().add(wabbitEggs.id, rollQuantity),
+					itemsToAdd: loot,
+					collectionLog: true
+				});
+			} else if (shouldRemoveWabbitEggs) {
+				await targetUser.transactItems({
+					itemsToRemove: new Bank().add(wabbitEggs.id, rollQuantity)
+				});
+			} else if (loot.length > 0) {
+				await targetUser.addItemsToBank({ items: loot, collectionLog: true });
+			}
+
+			await globalClient.sendMessage(Channel.BotLogs, {
+				content: `${adminUser.logName} ran admin etn on ${targetUser.logName}: rolls=${rollQuantity.toLocaleString()}, remove_wabbit_eggs=${shouldRemoveWabbitEggs}, loot=${loot}`
+			});
+
+			let output = `${targetUser.usernameOrMention} Easter turn-in results:
+Wabbit eggs turned in: ${rollQuantity.toLocaleString()}
+Loot: ${loot}`;
+
+			if (tradeLines.length === 0) {
+				output += `\n\nNo Wabbit eggs trades were found for ${targetUser.usernameOrMention} since April 20, 2026.`;
+			} else {
+				output += `\n\nWabbit egg trades since April 20, 2026:
+${tradeLines.join('\n')}
+
+Totals:
+Sold by ${targetUser.usernameOrMention}: ${totalSoldByTargetUser.toLocaleString()}
+Bought by ${targetUser.usernameOrMention}: ${totalBoughtByTargetUser.toLocaleString()}`;
+			}
+
+			return interaction.returnStringOrFile(output);
 		}
 
 		if (options.item_stats) {
