@@ -1,3 +1,5 @@
+import { refreshRPRewardLimitsCache } from '@/lib/bso/rpRewards.js';
+
 import { isValidDiscordSnowflake } from '@oldschoolgg/util';
 
 import { roboChimpSyncData } from '@/lib/roboChimp.js';
@@ -13,6 +15,7 @@ export async function refreshUserCache({
 	possibleTarget?: string;
 }) {
 	let refreshUser = user;
+	const shouldRefreshRPRewardLimits = !possibleTarget?.trim() && user.isModOrAdmin();
 
 	if (possibleTarget) {
 		possibleTarget = getIdFromMention(possibleTarget);
@@ -31,8 +34,11 @@ export async function refreshUserCache({
 		Cache.resetUsername(refreshUser.id),
 		updateGuildMember(refreshUser.id),
 		Cache.getRoboChimpUser(refreshUser.id, true),
-		roboChimpSyncData(refreshUser)
+		roboChimpSyncData(refreshUser),
+		shouldRefreshRPRewardLimits ? refreshRPRewardLimitsCache() : Promise.resolve()
 	]);
 	user.updateProperties();
-	return `${refreshUser}'s Caches updated successfully!`;
+	return `${refreshUser}'s Caches updated successfully!${
+		shouldRefreshRPRewardLimits ? ' RP reward config cache refreshed.' : ''
+	}`;
 }

@@ -19,7 +19,7 @@ import { isValidDiscordSnowflake, MockedRedis, RedisKeys } from '@oldschoolgg/ut
 import { Redis } from 'ioredis';
 
 import type { Guild, Prisma } from '@/prisma/main.js';
-import { BitField, BOT_TYPE, globalConfig } from '@/lib/constants.js';
+import { BitField, BOT_TYPE, BOT_TYPE_LOWERCASE, globalConfig } from '@/lib/constants.js';
 import type { RobochimpUser } from '@/lib/roboChimp.js';
 import { makeBadgeString } from '@/lib/util/makeBadgeString.js';
 
@@ -47,6 +47,7 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 } as const;
 
 const BotKeys = RedisKeys[BOT_TYPE];
+const RP_REWARD_LIMITS_CACHE_KEY = `${BOT_TYPE_LOWERCASE}:rp_reward_limits`;
 const ROBOCHIMP_USER_CACHE_TTL_SECONDS = TTL.Minute * 5;
 type CachedGuildSettings = Pick<Guild, 'id' | 'disabledCommands' | 'petchannel' | 'staffOnlyChannels'>;
 type GuildUpdateInput = Partial<IGuild> & {
@@ -498,6 +499,18 @@ class CacheManager {
 
 	async setDisabledCommands(newDisabledCommands: string[]): Promise<void> {
 		await this.setJson(BotKeys.DisabledCommands, newDisabledCommands);
+	}
+
+	async getRPRewardLimits<T extends object>(): Promise<T | null> {
+		return this.getJson<T>(RP_REWARD_LIMITS_CACHE_KEY);
+	}
+
+	async setRPRewardLimits(value: object): Promise<void> {
+		await this.setJsonWithTTL(RP_REWARD_LIMITS_CACHE_KEY, value, this.jitterTTL(TTL.Hour, 0.1));
+	}
+
+	async resetRPRewardLimits(): Promise<void> {
+		await this.client.del(RP_REWARD_LIMITS_CACHE_KEY);
 	}
 
 	async isUserBlacklisted(id: string): Promise<boolean> {

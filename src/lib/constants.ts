@@ -172,6 +172,7 @@ export enum BitField {
 	DisableBankWeights = 55,
 	DisableBankFavorites = 56,
 
+	GameSettings = 198,
 	OriginalCyrSupporter = 199,
 	HasGivenBirthdayPack = 200,
 	HasPermanentSpawnLamp = 201,
@@ -211,7 +212,8 @@ export enum BitField {
 	HasHalloweenWallkit = 234,
 	HasEarnedRiftGuardianFromStar = 235,
 	DisablePaints = 236,
-	DisableGlowEffects = 238
+	DisableGlowEffects = 238.
+
 }
 
 export interface IBitFieldData {
@@ -266,6 +268,7 @@ export const BitFieldData: Record<BitField, IBitFieldData> = {
 	[BitField.UsedSirenicTablet]: { name: 'Used Sirenic Tablet', protected: false, userConfigurable: false },
 	[BitField.UsedStrangledTablet]: { name: 'Used Strangled Tablet', protected: false, userConfigurable: false },
 	[BitField.SelfGamblingLocked]: { name: 'Self Gambling Lock', protected: false, userConfigurable: true },
+	[BitField.GameSettings]: { name: 'Game Settings', protected: true, userConfigurable: false },
 	[BitField.OriginalCyrSupporter]: { name: "One of Cyr's first Patrons", protected: false, userConfigurable: false },
 	[BitField.HasGivenBirthdayPack]: { name: 'Has Given Birthday Pack', protected: false, userConfigurable: false },
 	[BitField.BypassAgeRestriction]: { name: 'Bypassed Age Restriction', protected: false, userConfigurable: false },

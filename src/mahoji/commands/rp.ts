@@ -1,3 +1,5 @@
+import { autocompleteRPRewardGifts, claimRPRewardGift } from '@/lib/bso/rpRewards.js';
+
 import { codeBlock, dateFm } from '@oldschoolgg/discord';
 import { type GearSetupType, GearSetupTypes } from '@oldschoolgg/gear';
 import { sumArr, Time, toTitleCase } from '@oldschoolgg/toolkit';
@@ -64,6 +66,27 @@ export const rpCommand = defineCommand({
 		// 		options: []
 		// 	}))
 		// },
+		{
+			type: 'SubcommandGroup',
+			name: 'reward',
+			description: 'RP rewards',
+			options: [
+				{
+					type: 'Subcommand',
+					name: 'gift',
+					description: 'Claim an RP reward gift.',
+					options: [
+						{
+							type: 'String',
+							name: 'gift',
+							description: 'The reward gift to claim.',
+							required: true,
+							autocomplete: autocompleteRPRewardGifts
+						}
+					]
+				}
+			]
+		},
 		{
 			type: 'SubcommandGroup',
 			name: 'player',
@@ -416,8 +439,13 @@ export const rpCommand = defineCommand({
 		await interaction.defer();
 		const isAdmin = adminUser.isAdmin();
 		const isMod = isAdmin || adminUser.isMod();
+		const canUseRPRewards = isMod || adminUser.isContributor();
 		if (!guildId || (globalConfig.isProduction && guildId.toString() !== globalConfig.supportServerID)) {
 			return rng.pick(gifs);
+		}
+		if (options.reward?.gift) {
+			if (!canUseRPRewards) return rng.pick(gifs);
+			return claimRPRewardGift(adminUser, options.reward.gift.gift);
 		}
 		if (!isAdmin && !isMod) return rng.pick(gifs);
 

@@ -191,6 +191,7 @@ model ClientStorage {
   portable_tanner_loot       Json @default("{}") @db.Json
   buried_treasure_bank       Json @default("{}") @db.JsonB
   buried_treasure_winners    Json @default("{}") @db.JsonB
+  rp_reward_daily_limits     Json @default("{\"mod\":{\"daily\":{\"52616\":1,\"13345\":1,\"19837\":1},\"weekly\":{\"52616\":5,\"13345\":5,\"19837\":5},\"monthly\":{\"52616\":10,\"13345\":10,\"19837\":10}},\"contrib\":{\"daily\":{\"52616\":1,\"13345\":1,\"19837\":1},\"weekly\":{\"52616\":5,\"13345\":5,\"19837\":5},\"monthly\":{\"52616\":10,\"13345\":10,\"19837\":10}}}") @db.JsonB
 
   last_bso_giveaways_ping  DateTime? @db.Timestamp(6)
   last_giveaway_doubleloot DateTime? @db.Timestamp(6)
@@ -534,6 +535,8 @@ model User {
 
   cl_array                      Int[]    @default([])
   completed_achievement_diaries String[] @default([])
+  rp_rewards_left               Json     @default("{}") @db.JsonB
+  rp_rewards_last_refilled      Json     @default("{}") @db.JsonB
 
   @@index([id, last_command_date])
   @@map("users")
