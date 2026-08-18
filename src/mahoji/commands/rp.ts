@@ -74,14 +74,20 @@ export const rpCommand = defineCommand({
 				{
 					type: 'Subcommand',
 					name: 'gift',
-					description: 'Claim an RP reward gift.',
+					description: 'Gift an RP reward.',
 					options: [
 						{
 							type: 'String',
 							name: 'gift',
-							description: 'The reward gift to claim.',
+							description: 'The reward gift to send.',
 							required: true,
 							autocomplete: autocompleteRPRewardGifts
+						},
+						{
+							type: 'User',
+							name: 'user',
+							description: 'The user to receive the reward gift.',
+							required: true
 						}
 					]
 				}
@@ -445,7 +451,17 @@ export const rpCommand = defineCommand({
 		}
 		if (options.reward?.gift) {
 			if (!canUseRPRewards) return rng.pick(gifs);
-			return claimRPRewardGift(adminUser, options.reward.gift.gift);
+			if (interaction.channelId !== Channel.GeneralChannel) {
+				return `You can only use this command in <#${Channel.GeneralChannel}>.`;
+			}
+			if (options.reward.gift.user.user.id === adminUser.id) {
+				return "You can't gift RP rewards to yourself.";
+			}
+			if (options.reward.gift.user.user.bot) {
+				return "You can't gift RP rewards to a bot.";
+			}
+			const recipient = await mUserFetch(options.reward.gift.user.user.id);
+			return claimRPRewardGift(adminUser, options.reward.gift.gift, recipient, guildId);
 		}
 		if (!isAdmin && !isMod) return rng.pick(gifs);
 
