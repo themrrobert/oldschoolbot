@@ -3,6 +3,7 @@ import { handleSlayerMaskGlow } from '@/lib/bso/skills/slayer/slayerMaskHelms.js
 
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { performance } from 'node:perf_hooks';
 import { formatItemStackQuantity, generateHexColorForCashStack } from '@oldschoolgg/toolkit';
 import {
 	type Canvas,
@@ -26,6 +27,11 @@ const Fonts = {
 } as const;
 
 type FontName = keyof typeof Fonts;
+
+export interface DrawItemIDSpriteProfileTimings {
+	clipLoadMs: number;
+	drawMs: number;
+}
 
 const fonts = {
 	OSRSFont: './src/lib/resources/osrs-font.ttf',
@@ -403,7 +409,8 @@ export class OSRSCanvas {
 		glow,
 		user,
 		override_show_paints: show_paints,
-		effect
+		effect,
+		profileTimings
 	}: {
 		itemID: number;
 		x: number;
@@ -420,7 +427,9 @@ export class OSRSCanvas {
 		user?: MUser | null | undefined;
 		override_show_paints?: boolean | undefined;
 		effect?: Image | undefined;
+		profileTimings?: DrawItemIDSpriteProfileTimings;
 	}) {
+		const clipLoadStart = performance.now();
 		const itemIcon: Image | Canvas = await OSRSCanvas.getItemImage({ itemID, iconPackId });
 		const destX = Math.floor(x + (this.itemSize.width - itemIcon.width) / 2);
 		const destY = Math.floor(y + (this.itemSize.height - itemIcon.height) / 2);
@@ -431,6 +440,7 @@ export class OSRSCanvas {
 				customImage = await applyCustomItemEffects(user, itemID);
 			}
 		}
+		if (profileTimings) profileTimings.clipLoadMs += performance.now() - clipLoadStart;
 
 		const args = [
 			customImage ?? itemIcon,
@@ -444,6 +454,7 @@ export class OSRSCanvas {
 			itemIcon.height
 		] as const;
 
+		const drawStart = performance.now();
 		if (effect) {
 			const centerX = destX + itemIcon.width / 2;
 			const centerY = destY + itemIcon.height / 2;
@@ -468,6 +479,7 @@ export class OSRSCanvas {
 		} else {
 			this.ctx.drawImage(...args);
 		}
+		if (profileTimings) profileTimings.drawMs += performance.now() - drawStart;
 
 		if (quantity) {
 			this.drawText({

@@ -4,7 +4,7 @@ import type { Bank } from 'oldschooljs';
 import { chunk } from 'remeda';
 
 import { choicesOf, filterOption, itemOption } from '@/discord/index.js';
-import type { BankFlag } from '@/lib/canvas/bankImage.js';
+import type { BankFlag, BankImageProfile } from '@/lib/canvas/bankImage.js';
 import { bankFlags } from '@/lib/canvas/bankImage.js';
 import { PerkTier } from '@/lib/constants.js';
 import { type Flags, OverrideStatus } from '@/lib/minions/types.js';
@@ -20,13 +20,15 @@ async function getBankPage({
 	bank,
 	mahojiFlags,
 	page,
-	flags = {}
+	flags = {},
+	profile
 }: {
 	user: MUser;
 	bank: Bank;
 	page: number;
 	mahojiFlags: BankFlag[];
 	flags?: Record<string, number | string>;
+	profile?: BankImageProfile;
 }): Promise<BaseSendableMessage> {
 	return {
 		files: [
@@ -38,7 +40,8 @@ async function getBankPage({
 					page
 				},
 				user,
-				mahojiFlags
+				mahojiFlags,
+				profile
 			})
 		]
 	};
@@ -105,6 +108,7 @@ export const bankCommand = defineCommand({
 	run: async ({ user, options, interaction }) => {
 		if (interaction) await interaction.defer();
 		const baseBank = user.bankWithGP;
+		const profile = (options as { profile?: BankImageProfile }).profile;
 
 		const mahojiFlags: BankFlag[] = [];
 
@@ -186,7 +190,8 @@ export const bankCommand = defineCommand({
 			bank,
 			flags,
 			mahojiFlags,
-			page: Number(flags.page)
+			page: Number(flags.page),
+			profile
 		};
 
 		const result = await getBankPage(params);

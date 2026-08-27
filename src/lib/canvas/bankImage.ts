@@ -3,6 +3,7 @@ import { bsoShortNameMap } from '@/lib/bso/bsoShortNameMap.js';
 
 import { existsSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
+import { performance } from 'node:perf_hooks';
 import { cleanString, generateHexColorForCashStack, sumArr, UserError } from '@oldschoolgg/toolkit';
 import { Bank, type Item, type ItemBank, itemID, toKMB } from 'oldschooljs';
 import { chunk } from 'remeda';
@@ -30,6 +31,34 @@ import { XPLamps } from '@/mahoji/lib/abstracted_commands/lampCommand.js';
 interface BankImageResult {
 	image: Buffer;
 	isTransparent: boolean;
+}
+
+export interface BankImageProfileRow {
+	rowIndex: number;
+	startItemIndex: number;
+	endItemIndex: number;
+	y: number;
+	clipLoadMs: number;
+	drawMs: number;
+	restMs: number;
+	totalMs: number;
+}
+
+export interface BankImageProfile {
+	stampRows?: boolean;
+	initMs?: number;
+	prepMs?: number;
+	valueTitleMs?: number;
+	canvasCreateMs?: number;
+	backgroundBorderTitleMs?: number;
+	pngMs?: number;
+	totalMs?: number;
+	canvasWidth?: number;
+	canvasHeight?: number;
+	itemsPerRow?: number;
+	itemCount?: number;
+	compact?: boolean;
+	rows: BankImageProfileRow[];
 }
 
 const itemSize = 32;
@@ -375,12 +404,66 @@ class BankImageTask {
 		mahojiFlags: BankFlag[] | undefined,
 		weightings: Readonly<ItemBank> | undefined,
 		verticalSpacer = 0,
-		user?: MUser
+		user?: MUser,
+		profile?: BankImageProfile
 	) {
 		let xLoc = 0;
 		let yLoc = compact ? 5 : 0;
+
+		let currentRow:
+			| {
+					rowIndex: number;
+					startItemIndex: number;
+					y: number;
+					startMs: number;
+					clipLoadMs: number;
+					drawMs: number;
+			  }
+			| null = null;
+
+		const formatProfileMs = (ms: number) => ms.toFixed(1).padStart(5, ' ');
+		const finishProfileRow = (endItemIndex: number) => {
+			if (!profile || !currentRow) return;
+			const totalMs = performance.now() - currentRow.startMs;
+			const restMs = Math.max(0, totalMs - currentRow.clipLoadMs - currentRow.drawMs);
+			const row: BankImageProfileRow = {
+				rowIndex: currentRow.rowIndex,
+				startItemIndex: currentRow.startItemIndex,
+				endItemIndex,
+				y: currentRow.y,
+				clipLoadMs: currentRow.clipLoadMs,
+				drawMs: currentRow.drawMs,
+				restMs,
+				totalMs
+			};
+			profile.rows.push(row);
+			if (profile.stampRows) {
+				c.drawText({
+					text: `clp ${formatProfileMs(row.clipLoadMs)} drw ${formatProfileMs(row.drawMs)} rst ${formatProfileMs(row.restMs)}`,
+					x: c.width - 205,
+					y: row.y + 10,
+					color: 'white',
+					font: 'TinyPixel'
+				});
+			}
+			currentRow = null;
+		};
+
 		for (let i = 0; i < items.length; i++) {
-			if (i % itemsPerRow === 0) yLoc += floor((itemSize + spacer / 2) * (compact ? 0.9 : 1.08)) + verticalSpacer;
+			if (i % itemsPerRow === 0) {
+				finishProfileRow(i - 1);
+				yLoc += floor((itemSize + spacer / 2) * (compact ? 0.9 : 1.08)) + verticalSpacer;
+				if (profile) {
+					currentRow = {
+						rowIndex: profile.rows.length,
+						startItemIndex: i,
+						y: yLoc,
+						startMs: performance.now(),
+						clipLoadMs: 0,
+						drawMs: 0
+					};
+				}
+			}
 			// For some reason, it starts drawing at -2 so we compensate that
 			// Adds the border width
 			// Adds distance from side
@@ -409,6 +492,7 @@ class BankImageTask {
 			}
 
 			const effect = user?.bitfield.includes(BitField.DisableGlowEffects) ? undefined : this.effects.get(item.id);
+			const profileTimings = profile ? { clipLoadMs: 0, drawMs: 0 } : undefined;
 
 			await c.drawItemIDSprite({
 				itemID: item.id,
@@ -419,8 +503,13 @@ class BankImageTask {
 				textColor: isNewCLItem ? OSRSCanvas.COLORS.PURPLE : undefined,
 				user,
 				override_show_paints: paintOverride,
-				effect
+				effect,
+				profileTimings
 			});
+			if (currentRow && profileTimings) {
+				currentRow.clipLoadMs += profileTimings.clipLoadMs;
+				currentRow.drawMs += profileTimings.drawMs;
+			}
 
 			let bottomItemText: string | number | null = null;
 
@@ -455,6 +544,7 @@ class BankImageTask {
 				});
 			}
 		}
+		finishProfileRow(items.length - 1);
 	}
 
 	async generateBankImage(
@@ -466,12 +556,17 @@ class BankImageTask {
 			user?: MUser;
 			collectionLog?: Bank;
 			mahojiFlags?: BankFlag[];
+			profile?: BankImageProfile;
 		} & BaseCanvasArgs
 	): Promise<BankImageResult> {
+		const totalStart = performance.now();
+		const initStart = performance.now();
 		if (!this.ready) {
 			await this.init();
 			this.ready = true;
 		}
+		if (opts.profile) opts.profile.initMs = performance.now() - initStart;
+		const prepStart = performance.now();
 		let { user, collectionLog, title = '', showValue = true } = opts;
 		const bank = opts.bank.clone();
 		const flags = new Map(Object.entries(opts.flags ?? {}));
@@ -563,7 +658,9 @@ class BankImageTask {
 
 		let width = wide ? 5 + 6 + 20 + ceil(Math.sqrt(items.length)) * itemWidthSize : 488;
 		if (width < 488) width = 488;
-		const itemsPerRow = floor((width - 6 * 2) / itemWidthSize);
+		const layoutWidth = width;
+		const itemsPerRow = floor((layoutWidth - 6 * 2) / itemWidthSize);
+		if (opts.profile?.stampRows) width += 215;
 		const canvasHeight =
 			floor(
 				floor(ceil(items.length / itemsPerRow) * floor((itemSize + spacer / 2) * (compact ? 0.9 : 1.08))) +
@@ -586,13 +683,23 @@ class BankImageTask {
 				items.some(([item]) => !currentCL.has(item.id) && allCLItems.has(item.id)));
 
 		const useSmallBank = user ? (hasBgSprite ? true : user.bitfield.includes(BitField.AlwaysSmallBank)) : true;
+		if (opts.profile) {
+			opts.profile.prepMs = performance.now() - prepStart;
+			opts.profile.canvasWidth = width;
+			opts.profile.canvasHeight = useSmallBank ? canvasHeight : Math.max(331, canvasHeight);
+			opts.profile.itemsPerRow = itemsPerRow;
+			opts.profile.itemCount = items.length;
+			opts.profile.compact = compact;
+		}
 
+		const canvasStart = performance.now();
 		const canvas = new OSRSCanvas({
 			width,
 			height: useSmallBank ? canvasHeight : Math.max(331, canvasHeight),
 			sprite: bgSprite,
 			iconPackId: opts.iconPackId ?? user?.iconPackId
 		});
+		if (opts.profile) opts.profile.canvasCreateMs = performance.now() - canvasStart;
 
 		const actualBackground = isPurple && bgImage.hasPurple ? bgImage.purpleImage! : backgroundImage;
 		let resizeBg = -1;
@@ -602,6 +709,15 @@ class BankImageTask {
 
 		const ctx = canvas.ctx;
 
+		let valueTitleMs = 0;
+		if (showValue) {
+			const valueTitleStart = performance.now();
+			title += ` (V: ${toKMB(totalValue)} / MV: ${toKMB(marketPriceOfBank(bank))}) `;
+			valueTitleMs = performance.now() - valueTitleStart;
+		}
+		if (opts.profile) opts.profile.valueTitleMs = valueTitleMs;
+
+		const backgroundBorderTitleStart = performance.now();
 		if (!isTransparent) {
 			ctx.fillStyle = ctx.createPattern(bgSprite.repeatableBg, 'repeat')!;
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -623,13 +739,9 @@ class BankImageTask {
 			);
 		}
 
-		if (showValue) {
-			title += ` (V: ${toKMB(totalValue)} / MV: ${toKMB(marketPriceOfBank(bank))}) `;
-		}
-
 		canvas.drawTitleText({
 			text: title,
-			x: canvas.width / 2,
+			x: opts.profile?.stampRows ? layoutWidth / 2 : canvas.width / 2,
 			y: 21,
 			center: true
 		});
@@ -638,6 +750,7 @@ class BankImageTask {
 		if (!isTransparent && noBorder !== 1) {
 			canvas.drawBorder(bgSprite, bgImage.name === 'Default');
 		}
+		if (opts.profile) opts.profile.backgroundBorderTitleMs = performance.now() - backgroundBorderTitleStart;
 
 		await this.drawItems(
 			canvas,
@@ -651,10 +764,16 @@ class BankImageTask {
 			opts.mahojiFlags,
 			weightings,
 			undefined,
-			user
+			user,
+			opts.profile
 		);
 
+		const pngStart = performance.now();
 		const image = await canvas.toScaledOutput(2);
+		if (opts.profile) {
+			opts.profile.pngMs = performance.now() - pngStart;
+			opts.profile.totalMs = performance.now() - totalStart;
+		}
 
 		return {
 			image,
