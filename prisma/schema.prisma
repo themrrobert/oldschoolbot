@@ -1869,6 +1869,7 @@ enum command_name_enum {
   spawnlamp
   testershop
   vasa
+  disco
 }
 
 enum TableBankType {

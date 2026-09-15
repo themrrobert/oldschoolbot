@@ -57,6 +57,7 @@ import type {
 	CreateForestersRationsActivityTaskOptions,
 	CutLeapingFishActivityTaskOptions,
 	DarkAltarOptions,
+	DiscoBloodbathActivityTaskOptions,
 	EnchantingActivityTaskOptions,
 	FarmingActivityTaskOptions,
 	FiremakingActivityTaskOptions,
@@ -215,6 +216,10 @@ const tripHandlers: {
 	[activity_type_enum.ArchonEvent]: {
 		commandName: 'm',
 		args: () => ({})
+	},
+	[activity_type_enum.DiscoBloodbath]: {
+		commandName: 'disco',
+		args: (data: DiscoBloodbathActivityTaskOptions) => ({ visit: { club_name: data.club } })
 	},
 	[activity_type_enum.BirthdayEvent]: {
 		commandName: 'm',
