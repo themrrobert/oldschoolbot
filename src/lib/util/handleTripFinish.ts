@@ -117,7 +117,7 @@ const tripFinishEffects: TripFinishEffect[] = [
 		fn: discoHandler
 	},
 	{
-		name: 'booalaDroprate',
+		name: 'Halloween2026Pet',
 		fn: async ({ data, messages, user, rng }) => {
 			if (!isDiscoEventActive() || data.duration <= Time.Minute * 10) return;
 
@@ -127,7 +127,7 @@ const tripFinishEffects: TripFinishEffect[] = [
 				if (!rng.roll(droprate)) continue;
 				const loot = new Bank().add(BSOItem.BOOALA);
 				messages.push(
-					`\n${Emoji.Booala}} BOO! A meandering, menacing,  miniature joins your minion. Why don't Koala start with an M? You received ${loot}.\n`
+					`\n${Emoji.Booala} BOO! A meandering, menacing,  miniature joins your minion. Why don't Koala start with an M? You received ${loot}.\n`
 				);
 				return { itemsToAddWithCL: loot };
 			}
