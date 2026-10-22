@@ -27,7 +27,8 @@ import { shootingStarsCommand } from '@/mahoji/lib/abstracted_commands/shootingS
 async function giveawayButtonHandler(user: MUser, customID: string, interaction: OSInteraction): CommandResponse {
 	const split = customID.split('_');
 	if (split[0] !== 'GIVEAWAY') return { content: 'Invalid giveaway.', ephemeral: true };
-	const giveawayID = Number(split[2]);
+	const giveawayID = split[2];
+	if (!giveawayID) return { content: 'Invalid giveaway.', ephemeral: true };
 	let giveaway: Giveaway | null = giveawayCache.get(giveawayID) ?? null;
 	if (!giveaway) {
 		giveaway = await prisma.giveaway.findFirst({
