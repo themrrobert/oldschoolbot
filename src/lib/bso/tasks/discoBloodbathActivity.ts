@@ -1,5 +1,4 @@
 import {
-	DISCO_POINT_REWORK_DATE,
 	type DiscoAesthetic,
 	type DiscoClub,
 	discoHalloweenStory,
@@ -23,8 +22,6 @@ type DiscoStats = {
 };
 
 const route: DiscoClub[] = ['Money', 'Success', 'Fame', 'Glamour'];
-const discoPointReworkReminderEnds = new Date(DISCO_POINT_REWORK_DATE.getTime() + Time.Day);
-const discoPointReworkAnnouncement = `📢 The accidental 500 point cap was reworked <t:${Math.floor(DISCO_POINT_REWORK_DATE.getTime() / 1000)}:R>. Points will be downscaled so the race stays fair: 1,500 points in an aesthetic will equal 500 base points.`;
 
 function routeResetMessageForDepth(depth: number, rng: { pick<T>(items: readonly T[]): T }) {
 	if (depth === route.length - 1) {
@@ -244,10 +241,8 @@ export const discoBloodbathTask: MinionTask = {
 				? '**You completed the route 1 time! Congrats!** 🎉'
 				: `**You completed the route ${stats.routeCompletions} times!** You can't get any more boxes :p 🎉`
 			: '';
-		const pointReworkMessage =
-			new Date() < discoPointReworkReminderEnds ? `\n\n${discoPointReworkAnnouncement}` : '';
 		const message = new MessageBuilder().setContent(
-			`${user.mention}, ${user.minionName} finished a ${minutes}-minute ${data.isRave ? 'rave' : 'visit'} to ${data.club}.\n${topMessage}\n${crowdMessage}${crashMessage ? `\n${crashMessage}` : ''}${storyEnding ? `\n\n${storyEnding}` : ''}${lure}\n\n**Realm points**\n${pointSummary}${totalScore === 0 ? '\nYour Fashion gear scored no points. Try `/disco check_item` to plan your outfit.' : ''}${routeCompletionMessage ? `\n\n📢 ${routeCompletionMessage}\n` : ''}${pointReworkMessage}${glamourBoxes > 0 ? `\n\n🎉 **SKRINK/SKROD BOX DROP!** 🎉\nThe crowd erupts!` : ''}${itemsAdded.length > 0 ? `\n\n**Loot:** ${itemsAdded}` : ''}${routeResetMessage ? `\n\n***🔑${routeResetMessage}***\n` : ''}`
+			`${user.mention}, ${user.minionName} finished a ${minutes}-minute ${data.isRave ? 'rave' : 'visit'} to ${data.club}.\n${topMessage}\n${crowdMessage}${crashMessage ? `\n${crashMessage}` : ''}${storyEnding ? `\n\n${storyEnding}` : ''}${lure}\n\n**Realm points**\n${pointSummary}${totalScore === 0 ? '\nYour Fashion gear scored no points. Try `/disco check_item` to plan your outfit.' : ''}${routeCompletionMessage ? `\n\n📢 ${routeCompletionMessage}\n` : ''}${glamourBoxes > 0 ? `\n\n🎉 **SKRINK/SKROD BOX DROP!** 🎉\nThe crowd erupts!` : ''}${itemsAdded.length > 0 ? `\n\n**Loot:** ${itemsAdded}` : ''}${routeResetMessage ? `\n\n***🔑${routeResetMessage}***\n` : ''}`
 		);
 		if (itemsAdded.length > 0) {
 			message.addBankImage({
