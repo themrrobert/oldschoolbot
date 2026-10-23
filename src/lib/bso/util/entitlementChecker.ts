@@ -1,6 +1,6 @@
 import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 
-import { RoboChimpBit } from '@oldschoolgg/toolkit';
+import { activeEntitlements, effectivePerkTier, RoboChimpBit } from '@oldschoolgg/toolkit';
 
 import { srcMUserFetch } from '@/lib/user/MUser.js';
 
@@ -59,16 +59,21 @@ export async function checkEntitlements(
 			needsPerkTier ? eligibleUser.fetchPerkTier() : null,
 			needsBitfield ? Cache.getRoboChimpUser(eligibleUser.id) : null
 		]);
+		const canonical = robochimpUser && Array.isArray(robochimpUser.entitlements) && robochimpUser.entitlements.length > 0;
+		const canonicalTier = canonical ? effectivePerkTier(robochimpUser.entitlements) : perkTier;
 		for (const entitlement of entitlements) {
 			const hasRequirements = entitlement.perkTier !== undefined || entitlement.bitfield !== undefined;
-			const matchesPerkTier = entitlement.perkTier === undefined || perkTier! >= entitlement.perkTier;
+			const matchesPerkTier = entitlement.perkTier === undefined || canonicalTier! >= entitlement.perkTier;
 			const matchesBitfield =
-				entitlement.bitfield === undefined || hasBitfieldEntitlement(robochimpUser!.bits, entitlement.bitfield);
+				entitlement.bitfield === undefined || (!canonical && hasBitfieldEntitlement(robochimpUser!.bits, entitlement.bitfield));
 			if (hasRequirements && matchesPerkTier && matchesBitfield) {
+				const matched = canonical
+					? activeEntitlements(robochimpUser.entitlements).find(value => entitlement.perkTier === undefined || value.perkTier >= entitlement.perkTier)
+					: null;
 				return {
 					success: true,
 					authorized_user: eligibleUser.id,
-					entitlement: { ...entitlement }
+					entitlement: matched ?? { ...entitlement }
 				};
 			}
 		}

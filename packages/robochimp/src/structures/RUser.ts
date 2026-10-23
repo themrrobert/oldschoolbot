@@ -1,6 +1,7 @@
 import { userMention } from '@oldschoolgg/discord';
 import {
 	getPerkTierEx,
+	effectivePerkTier,
 	getPerkTierDisplay as getSharedDisplay,
 	getPerkTierDetails as getSharedPerks,
 	type PerkTier
@@ -11,7 +12,7 @@ import type { Prisma, User } from '@prisma/robochimp';
 import { redis, rUserTTL } from '@/lib/redis.js';
 import { Bits, type PatronTier, tiers } from '@/util.js';
 
-export type RUserGroupUser = Pick<User, 'id' | 'bits'> &
+export type RUserGroupUser = Pick<User, 'id' | 'bits' | 'entitlements'> &
 	Partial<Pick<User, 'premium_balance_tier' | 'premium_balance_is_cyr' | 'premium_balance_expiry_date'>>;
 
 export class RUser {
@@ -30,6 +31,10 @@ export class RUser {
 
 	get patreonBits(): Bits[] {
 		return this.bits;
+	}
+
+	get entitlements(): User['entitlements'] {
+		return this._groupUsers.flatMap(user => Array.isArray(user.entitlements) ? user.entitlements : []);
 	}
 
 	get leaguesPointsTotal(): number {
@@ -74,6 +79,7 @@ export class RUser {
 	}
 
 	get perkTierRaw(): PerkTier {
+		if (this.entitlements.length > 0) return effectivePerkTier(this.entitlements) as PerkTier;
 		return getPerkTierEx(this);
 	}
 
@@ -140,6 +146,7 @@ export class RUser {
 			select: {
 				id: true,
 				bits: true,
+				entitlements: true,
 				premium_balance_tier: true,
 				premium_balance_is_cyr: true,
 				premium_balance_expiry_date: true
@@ -210,6 +217,7 @@ export async function fetchRUserGroupUsers(
 		User,
 		| 'id'
 		| 'bits'
+		| 'entitlements'
 		| 'premium_balance_tier'
 		| 'premium_balance_is_cyr'
 		| 'premium_balance_expiry_date'
@@ -221,6 +229,7 @@ export async function fetchRUserGroupUsers(
 			{
 				id: user.id,
 				bits: user.bits,
+				entitlements: user.entitlements,
 				premium_balance_tier: user.premium_balance_tier,
 				premium_balance_is_cyr: user.premium_balance_is_cyr,
 				premium_balance_expiry_date: user.premium_balance_expiry_date
@@ -235,6 +244,7 @@ export async function fetchRUserGroupUsers(
 		select: {
 			id: true,
 			bits: true,
+			entitlements: true,
 			premium_balance_tier: true,
 			premium_balance_is_cyr: true,
 			premium_balance_expiry_date: true

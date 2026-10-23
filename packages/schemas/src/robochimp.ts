@@ -3,6 +3,21 @@ import z from 'zod';
 import { ZBigInt } from './shared.js';
 
 const ZNullableBigInt = ZBigInt.nullable();
+const ZEntitlement = z.object({
+	id: z.string().min(1),
+	source: z.enum(['magna-patreon', 'cyr-patreon', 'magna-github', 'gift', 'trial', 'legacy-bitfield', 'other']),
+	tier: z.number().int().nonnegative(),
+	perkTier: z.number().int().nonnegative(),
+	extra: z.array(z.number().int().nonnegative()),
+	issuedAt: z.number().int().nonnegative(),
+	expiresAt: z.number().int().positive().optional(),
+	extensionsLeft: z.number().int().nonnegative().optional(),
+	extensionDurationMs: z.number().int().positive().optional()
+}).superRefine((value, ctx) => {
+	if ((value.extensionsLeft === undefined) !== (value.extensionDurationMs === undefined)) {
+		ctx.addIssue({ code: 'custom', message: 'Trial extensions require both extension fields.' });
+	}
+});
 
 export const ZRoboChimpUser = z.object({
 	id: ZBigInt,
@@ -28,6 +43,7 @@ export const ZRoboChimpUser = z.object({
 	testing_points: z.number(),
 	testing_points_balance: z.number(),
 	perk_tier: z.number().int(),
+	entitlements: z.array(ZEntitlement),
 	premium_balance_tier: z.number().int().nullable(),
 	premium_balance_is_cyr: z.boolean().nullable(),
 	premium_balance_expiry_date: ZNullableBigInt,

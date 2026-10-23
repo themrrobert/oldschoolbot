@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import { notEmpty, PerkTier, uniqueArr } from '@oldschoolgg/toolkit';
+import { ExtraEntitlementBit, normalizeEntitlements, notEmpty, PerkTier, uniqueArr, type Entitlement } from '@oldschoolgg/toolkit';
 import { RedisKeys } from '@oldschoolgg/util';
 import { PatreonSources, Prisma } from '@prisma/robochimp';
 
@@ -37,6 +37,7 @@ type RobochimpUserState = {
 	github_id: number | null;
 	patreon_id: string | null;
 	cyr_patreon_id: string | null;
+	entitlements: unknown;
 };
 
 type DesiredRobochimpUserState = RobochimpUserState & {
@@ -44,6 +45,7 @@ type DesiredRobochimpUserState = RobochimpUserState & {
 	nextPatreonID: string | null;
 	nextCyrPatreonID: string | null;
 	nextPerkTier: number;
+	nextEntitlements: Entitlement[];
 };
 
 type EntitledTiersByUserID = Record<string, PatronTier[]>;
@@ -705,7 +707,8 @@ class PatreonTask {
 				user_group_id: true,
 				github_id: true,
 				patreon_id: true,
-				cyr_patreon_id: true
+				cyr_patreon_id: true,
+				entitlements: true
 			},
 			orderBy: {
 				id: 'asc'
@@ -728,7 +731,8 @@ class PatreonTask {
 				user_group_id: true,
 				github_id: true,
 				patreon_id: true,
-				cyr_patreon_id: true
+				cyr_patreon_id: true,
+				entitlements: true
 			},
 			orderBy: {
 				id: 'asc'
@@ -750,7 +754,8 @@ class PatreonTask {
 				user_group_id: true,
 				github_id: true,
 				patreon_id: true,
-				cyr_patreon_id: true
+				cyr_patreon_id: true,
+				entitlements: true
 			}
 		});
 	}
@@ -918,7 +923,8 @@ class PatreonTask {
 					${intArraySql(user.nextBits)},
 					${user.nextPerkTier}::integer,
 					${user.nextPatreonID}::text,
-					${user.nextCyrPatreonID}::text
+					${user.nextCyrPatreonID}::text,
+					${JSON.stringify(user.nextEntitlements)}::jsonb
 				)`
 			)
 		);
@@ -929,8 +935,9 @@ class PatreonTask {
 				bits = desired.bits,
 				perk_tier = desired.perk_tier,
 				patreon_id = desired.patreon_id,
-				cyr_patreon_id = desired.cyr_patreon_id
-			FROM (VALUES ${values}) AS desired(id, bits, perk_tier, patreon_id, cyr_patreon_id)
+				cyr_patreon_id = desired.cyr_patreon_id,
+				entitlements = desired.entitlements
+			FROM (VALUES ${values}) AS desired(id, bits, perk_tier, patreon_id, cyr_patreon_id, entitlements)
 			WHERE u.id = desired.id
 		`;
 	}
@@ -1096,6 +1103,18 @@ class PatreonTask {
 		for (const user of roboUsers) {
 			const discordID = user.id.toString();
 			const entitlements = entitlementsByUserID[discordID] ?? [];
+			const preservedEntitlements = normalizeEntitlements(user.entitlements).filter(entitlement => !['magna-patreon', 'magna-github', 'cyr-patreon'].includes(entitlement.source));
+			const nextEntitlements = [
+				...preservedEntitlements,
+				...entitlements.map(entitlement => ({
+					id: `${entitlement.source === 'cyr' ? 'cyr-patreon' : 'magna-patreon'}-tier-${entitlement.number}`,
+					source: entitlement.source === 'cyr' ? 'cyr-patreon' as const : 'magna-patreon' as const,
+					tier: entitlement.number,
+					perkTier: entitlement.perkTier,
+					extra: entitlement.source === 'cyr' ? [ExtraEntitlementBit.Cyr] : [],
+					issuedAt: Date.now()
+				}))
+			];
 			const paidBits = uniqueArr(entitlements.map(entitlement => entitlement.bit));
 			const nextBits = normalizeBits({
 				bits: user.bits,
@@ -1112,6 +1131,7 @@ class PatreonTask {
 			const nextPerkTier = Math.max(
 				getRoboChimpRolePerkTier(user.bits),
 				...entitlements.map(tier => tier.perkTier),
+				...nextEntitlements.filter(entitlement => entitlement.expiresAt === undefined || entitlement.expiresAt > Date.now()).map(entitlement => entitlement.perkTier),
 				PerkTier.Zero
 			);
 
@@ -1121,6 +1141,7 @@ class PatreonTask {
 				nextPatreonID: patreonIDsByUserID[discordID]?.magna ?? user.patreon_id,
 				nextCyrPatreonID: patreonIDsByUserID[discordID]?.cyr ?? user.cyr_patreon_id,
 				nextPerkTier
+				,nextEntitlements
 			});
 		}
 
@@ -1153,7 +1174,8 @@ class PatreonTask {
 				!sameNumberArray(user.nextBits, user.bits) ||
 				user.nextPerkTier !== oldPerkTier ||
 				user.nextPatreonID !== user.patreon_id ||
-				user.nextCyrPatreonID !== user.cyr_patreon_id
+				user.nextCyrPatreonID !== user.cyr_patreon_id ||
+				JSON.stringify(user.nextEntitlements) !== JSON.stringify(normalizeEntitlements(user.entitlements))
 			) {
 				usersToUpdate.push(user);
 			}

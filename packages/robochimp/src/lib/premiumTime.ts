@@ -1,4 +1,4 @@
-import { formatDuration, Time } from '@oldschoolgg/toolkit';
+import { formatDuration, normalizeEntitlements, Time, type Entitlement } from '@oldschoolgg/toolkit';
 import type { Prisma } from '@prisma/robochimp';
 
 type PremiumTimeClient = typeof roboChimpClient | Prisma.TransactionClient;
@@ -97,11 +97,26 @@ export async function applyPremiumTimeGrant({
 	userID: bigint;
 	grant: PremiumTimeGrant;
 }) {
+	const current = await client.user.findUniqueOrThrow({ where: { id: userID }, select: { entitlements: true } });
+	const now = Date.now();
+	const source = 'gift' as const;
+	const id = `gift-tier-${grant.tier}`;
+	const entitlements = normalizeEntitlements(current.entitlements).filter(entitlement => entitlement.id !== id && (entitlement.expiresAt === undefined || entitlement.expiresAt > now));
+	const existing = normalizeEntitlements(current.entitlements).find(entitlement => entitlement.id === id);
+	const gift: Entitlement = {
+		id,
+		source,
+		tier: grant.tier,
+		perkTier: grant.tier,
+		extra: grant.isCyr ? [2] : [],
+		issuedAt: existing?.issuedAt ?? now,
+		expiresAt: grant.expiryTime
+	};
 	return client.user.update({
 		where: {
 			id: userID
 		},
-		data: premiumTimeGrantUpdate(grant)
+		data: { ...premiumTimeGrantUpdate(grant), entitlements: [...entitlements, gift] as any }
 	});
 }
 

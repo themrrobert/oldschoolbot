@@ -351,6 +351,7 @@ model User {
   slayer_last_task       Int       @default(0) @map("slayer.last_task")
   badges                 Int[]     @default([])
   bitfield               Int[]     @default([])
+  entitlements           Json      @default("[]") @db.JsonB
   temp_cl                Json      @default("{}") @db.Json
   last_temp_cl_reset     DateTime? @db.Timestamp(6)
   minion_equippedPet     Int?      @map("minion.equippedPet")

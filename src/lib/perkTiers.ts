@@ -1,4 +1,4 @@
-import { getPerkTierEx, PerkTier, Time } from '@oldschoolgg/toolkit';
+import { effectivePerkTier, getPerkTierEx, PerkTier, Time } from '@oldschoolgg/toolkit';
 import { LRUCache } from 'lru-cache';
 
 import { BitField, BOT_TYPE } from '@/lib/constants.js';
@@ -71,6 +71,12 @@ export async function getUsersPerkTier({
 	}
 
 	const roboChimpCached = await Cache.getRoboChimpUser(user.id, forceNoCache);
+	if (Array.isArray(roboChimpCached.entitlements) && roboChimpCached.entitlements.length > 0) {
+		const tier = effectivePerkTier(roboChimpCached.entitlements);
+		setHotCache(user.id, tier);
+		await Cache.setPerkTier(user.id, tier);
+		return tier as PerkTier;
+	}
 	const options = { courtesyTier: getCourtesyTier(user), legacyTier: getLegacyTier(user) };
 	const sharedTier = roboChimpCached
 		? getPerkTierEx(

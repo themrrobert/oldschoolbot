@@ -116,6 +116,14 @@ class CacheManager {
 		return this.client.get(key);
 	}
 
+	async getSharedString(key: string): Promise<string | null> {
+		return this.getString(key);
+	}
+
+	async setSharedString(key: string, value: string, ttlSeconds?: number): Promise<void> {
+		await this.setString(key, value, ttlSeconds ?? TTL.Day * 30);
+	}
+
 	private async bulkSet<T>(items: T[], getKey: (x: T) => string): Promise<void> {
 		const pipeline = this.client.pipeline();
 		for (const item of items) {
@@ -283,7 +291,7 @@ class CacheManager {
 	}
 
 	private isCompleteRoboChimpUser(user: RobochimpUser): boolean {
-		return 'premium_balance_tier' in user && 'premium_balance_expiry_date' in user && 'last_patreon_gift' in user;
+		return 'premium_balance_tier' in user && 'premium_balance_expiry_date' in user && 'last_patreon_gift' in user && 'entitlements' in user;
 	}
 
 	async setRoboChimpUser(userID: string, user: RobochimpUser): Promise<void> {

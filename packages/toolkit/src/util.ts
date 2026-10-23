@@ -6,6 +6,7 @@ export * from './types.js';
 export * from './util/array.js';
 export * from './util/chance.js';
 export * from './util/datetime.js';
+export * from './util/entitlements.js';
 export * from './util/markdown.js';
 export * from './util/misc.js';
 export * from './util/perkTiers.js';

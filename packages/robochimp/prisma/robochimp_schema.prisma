@@ -64,6 +64,7 @@ model User {
   testing_points_balance Float @default(0)
 
   perk_tier                   Int     @default(0)
+  entitlements                Json    @default("[]") @db.JsonB
   premium_balance_tier        Int?
   premium_balance_is_cyr      Boolean?
   premium_balance_expiry_date BigInt?

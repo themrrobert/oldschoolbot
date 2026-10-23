@@ -4,6 +4,7 @@ import { keyCrates } from '@/lib/bso/keyCrates.js';
 import { checkEntitlements } from '@/lib/bso/util/entitlementChecker.js';
 import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 import { repairBrokenItemsFromUser } from '@/lib/bso/util/repairBrokenItems.js';
+import { startFreeTrial } from '@/lib/patreonEntitlements.js';
 
 import { EmbedBuilder, userMention } from '@oldschoolgg/discord';
 import {
@@ -852,7 +853,7 @@ export const toolsCommand = defineCommand({
 	description: 'Various tools and miscellaneous commands.',
 	options: [
 		{
-			name: 'patron',
+			name: 'patreon',
 			description: 'Tools that only patrons can use.',
 			type: 'SubcommandGroup',
 			options: [
@@ -881,6 +882,12 @@ export const toolsCommand = defineCommand({
 							required: false
 						}
 					]
+				},
+				{
+					type: 'Subcommand',
+					name: 'trial',
+					description: 'Start your free 14-day trial.',
+					options: []
 				},
 				{
 					type: 'Subcommand',
@@ -1187,8 +1194,16 @@ export const toolsCommand = defineCommand({
 	run: async ({ options, user, interaction, guildId }): CommandResponse => {
 		await interaction.defer();
 
-		if (options.patron) {
-			const { patron } = options;
+		if (options.patreon) {
+			const patron = options.patreon;
+
+			if (patron.trial) {
+				const result = await startFreeTrial(BigInt(user.id));
+				if (!result.created) {
+					return `Your free trial is already active and has ${result.extensionsLeft} extension${result.extensionsLeft === 1 ? '' : 's'} left.`;
+				}
+				return 'Started your 14-day free trial. You have three additional one-week extensions available.';
+			}
 
 			if (patron.purple_color) return purpleColorConfig(user, patron.purple_color.color);
 			if (patron.purple_glow) return purpleGlowConfig(user, patron.purple_glow.enabled);
