@@ -5,6 +5,8 @@ export const RedisKeys = {
 	PatreonToUserId: (id: string | number | bigint): string => `robochimp:patreon_id:${id.toString()}`,
 	PatreonReminderLast: (id: string | number | bigint): string => `patreon:reminder:last:${id.toString()}`,
 	PatreonReminderSuppressed: (id: string | number | bigint): string => `patreon:reminder:suppressed:${id.toString()}`,
+	PatreonReminderFinal: (id: string | number | bigint): string => `patreon:reminder:final:${id.toString()}`,
+	PatreonReminderLater: (id: string | number | bigint): string => `patreon:reminder:later:${id.toString()}`,
 	Global: {
 		PerkTier: (id: string): string => `global:user:${id.toString()}:perk_tier`
 	},

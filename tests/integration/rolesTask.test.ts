@@ -33,17 +33,18 @@ describe.skip('Roles Task', async () => {
 			create: { user_id: ironUser.id, ...minigameUpdate }
 		});
 
-		await global.prisma!.giveaway.create({
+    const giveawayMessageId = mockedId();
+    await global.prisma!.giveaway.create({
 			data: {
 				user_id: user.id,
 				loot: { 995: 10_000 },
 				start_date: new Date(),
 				finish_date: new Date(Date.now() + Time.Hour),
 				channel_id: '792691343284764693',
-				message_id: mockedId(),
+        message_id: giveawayMessageId,
 				reaction_id: mockedId(),
 				users_entered: [],
-				id: Number(mockedId()),
+        id: giveawayMessageId,
 				completed: false,
 				duration: 10_000
 			}

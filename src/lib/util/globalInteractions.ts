@@ -23,7 +23,7 @@ import { autoSlayCommand } from '@/mahoji/lib/abstracted_commands/autoSlayComman
 import { cancelGEListingCommand } from '@/mahoji/lib/abstracted_commands/cancelGEListingCommand.js';
 import { autoContract } from '@/mahoji/lib/abstracted_commands/farmingContractCommand.js';
 import { shootingStarsCommand } from '@/mahoji/lib/abstracted_commands/shootingStarsCommand.js';
-import { extendFreeTrial, startFreeTrial, suppressPatreonReminders } from '@/lib/patreonEntitlements.js';
+import { extendFreeTrial, remindPatreonLater, suppressPatreonReminders } from '@/lib/patreonEntitlements.js';
 
 async function giveawayButtonHandler(user: MUser, customID: string, interaction: OSInteraction): CommandResponse {
 	const split = customID.split('_');
@@ -250,7 +250,10 @@ async function globalButtonInteractionHandler({
 			const result = await extendFreeTrial(BigInt(userID));
 			return { content: result.extended ? 'Your free trial was extended by one week.' : 'This trial cannot be extended.', ephemeral: true };
 		}
-		if (action === 'patreon_trial_try_without') return { content: 'You can start a free trial later with `/tools patreon trial`.', ephemeral: true };
+		if (action === 'patreon_trial_try_without') {
+			await remindPatreonLater(userID);
+			return { content: 'We will remind you later. You can also start a free trial with `/tools patreon trial`.', ephemeral: true };
+		}
 		if (action === 'patreon_trial_suppress') {
 			await suppressPatreonReminders(userID);
 			return { content: 'Patreon reminders disabled.', ephemeral: true };

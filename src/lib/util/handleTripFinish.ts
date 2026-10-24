@@ -50,6 +50,7 @@ import { handleTriggerArchon } from '@/mahoji/lib/abstracted_commands/archonComm
 import { isUsersDailyReady } from '@/mahoji/lib/abstracted_commands/dailyCommand.js';
 import { canRunAutoContract } from '@/mahoji/lib/abstracted_commands/farmingContractCommand.js';
 import { handleTriggerShootingStar } from '@/mahoji/lib/abstracted_commands/shootingStarsCommand.js';
+import { markPatreonReminderSent, patreonExpiredOffer, shouldSendExpiredPatreonReminder, shouldSendMigrationActivityReminder } from '@/lib/patreonEntitlements.js';
 
 const activitiesToTrackAsPVMGPSource: activity_type_enum[] = [
 	'GroupMonsterKilling',
@@ -789,6 +790,15 @@ export async function handleTripFinish(
 			: typeof inputMessage === 'string'
 				? new MessageBuilder().setContent(inputMessage)
 				: new MessageBuilder(inputMessage);
+
+	const shouldSendExpiredOffer = await shouldSendExpiredPatreonReminder(BigInt(user.id));
+	const shouldSendMigrationOffer = !shouldSendExpiredOffer && await shouldSendMigrationActivityReminder(BigInt(user.id), data.duration);
+	if (shouldSendExpiredOffer || shouldSendMigrationOffer) {
+		const patreonOffer = patreonExpiredOffer(user.id, true, shouldSendMigrationOffer);
+		message.addContent(`\n${patreonOffer.content}`);
+		message.addComponents(patreonOffer.components);
+		await markPatreonReminderSent(user.id);
+	}
 
 	const perkTier = await user.fetchPerkTier();
 

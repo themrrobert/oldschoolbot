@@ -124,6 +124,10 @@ class CacheManager {
 		await this.setString(key, value, ttlSeconds ?? TTL.Day * 30);
 	}
 
+	async deleteSharedString(key: string): Promise<void> {
+		await this.client.del(key);
+	}
+
 	private async bulkSet<T>(items: T[], getKey: (x: T) => string): Promise<void> {
 		const pipeline = this.client.pipeline();
 		for (const item of items) {

@@ -8,12 +8,15 @@ const ZEntitlement = z.object({
 	source: z.enum(['magna-patreon', 'cyr-patreon', 'magna-github', 'gift', 'trial', 'legacy-bitfield', 'other']),
 	tier: z.number().int().nonnegative(),
 	perkTier: z.number().int().nonnegative(),
-	extra: z.array(z.number().int().nonnegative()),
+	extra: z.array(z.number().int().nonnegative().refine(value => value === 1, 'Unknown entitlement extra bit.')),
 	issuedAt: z.number().int().nonnegative(),
 	expiresAt: z.number().int().positive().optional(),
 	extensionsLeft: z.number().int().nonnegative().optional(),
 	extensionDurationMs: z.number().int().positive().optional()
 }).superRefine((value, ctx) => {
+	if (value.expiresAt !== undefined && value.expiresAt <= value.issuedAt) {
+		ctx.addIssue({ code: 'custom', message: 'Entitlement expiry must be after issue time.' });
+	}
 	if ((value.extensionsLeft === undefined) !== (value.extensionDurationMs === undefined)) {
 		ctx.addIssue({ code: 'custom', message: 'Trial extensions require both extension fields.' });
 	}

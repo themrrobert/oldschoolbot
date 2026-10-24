@@ -28,11 +28,11 @@ export function normalizeEntitlements(value: unknown): Entitlement[] {
 	return value.map(normalizeEntitlement).filter((value): value is Entitlement => value !== null).filter(value => !seen.has(value.id) && seen.add(value.id)).sort((a, b) => a.id.localeCompare(b.id));
 }
 
-export function activeEntitlements(value: unknown, now = Date.now()): Entitlement[] {
+export function activeEntitlements(value: unknown, now: number = Date.now()): Entitlement[] {
 	return normalizeEntitlements(value).filter(value => value.expiresAt === undefined || value.expiresAt > now);
 }
 
-export function effectivePerkTier(value: unknown, now = Date.now()): number {
+export function effectivePerkTier(value: unknown, now: number = Date.now()): number {
 	return Math.max(PerkTier.Zero, ...activeEntitlements(value, now).map(value => value.perkTier));
 }
 

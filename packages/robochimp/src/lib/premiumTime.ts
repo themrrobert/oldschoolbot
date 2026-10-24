@@ -1,4 +1,4 @@
-import { formatDuration, normalizeEntitlements, Time, type Entitlement } from '@oldschoolgg/toolkit';
+import { ExtraEntitlementBit, formatDuration, normalizeEntitlements, Time, type Entitlement } from '@oldschoolgg/toolkit';
 import type { Prisma } from '@prisma/robochimp';
 
 type PremiumTimeClient = typeof roboChimpClient | Prisma.TransactionClient;
@@ -108,7 +108,7 @@ export async function applyPremiumTimeGrant({
 		source,
 		tier: grant.tier,
 		perkTier: grant.tier,
-		extra: grant.isCyr ? [2] : [],
+		extra: grant.isCyr ? [ExtraEntitlementBit.Cyr] : [],
 		issuedAt: existing?.issuedAt ?? now,
 		expiresAt: grant.expiryTime
 	};

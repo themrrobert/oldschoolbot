@@ -274,7 +274,7 @@ class BankImageTask {
 	constructor() {
 		this.initPromise = this.init();
 	}
-	private async init() {
+	async init() {
 		if (this.initStarting) {
 			return this.initPromise;
 		}

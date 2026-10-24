@@ -59,6 +59,7 @@ type PatreonUserToUpsert = {
 };
 
 const ORIGINAL_CYR_PATRON_CUTOFF_UTC = Date.UTC(2026, 8, 16);
+export const sourcesToStrip = ['magna-patreon', 'magna-github', 'cyr-patreon'] as const;
 
 type PatreonMember = {
 	source: PaidTierSource;
@@ -1103,7 +1104,7 @@ class PatreonTask {
 		for (const user of roboUsers) {
 			const discordID = user.id.toString();
 			const entitlements = entitlementsByUserID[discordID] ?? [];
-			const preservedEntitlements = normalizeEntitlements(user.entitlements).filter(entitlement => !['magna-patreon', 'magna-github', 'cyr-patreon'].includes(entitlement.source));
+			const preservedEntitlements = normalizeEntitlements(user.entitlements).filter(entitlement => !sourcesToStrip.includes(entitlement.source as (typeof sourcesToStrip)[number]));
 			const nextEntitlements = [
 				...preservedEntitlements,
 				...entitlements.map(entitlement => ({

@@ -6,6 +6,7 @@ import { convertAPIOptionsToCommandOptions } from '@/discord/index.js';
 import { preCommand } from '@/discord/preCommand.js';
 import { BitField, busyImmuneCommands, SILENT_ERROR } from '@/lib/constants.js';
 import { RawSQL } from '@/lib/rawSql.js';
+import { MissingEntitlementError } from '@/lib/bso/util/entitlementChecker.js';
 
 export async function rawCommandHandlerInner({
 	interaction,
@@ -91,7 +92,11 @@ export async function rawCommandHandlerInner({
 	} catch (err) {
 		if ((err as Error).message === SILENT_ERROR) return SpecialResponse.SilentErrorResponse;
 		if (err instanceof UserError) {
-			await interaction.reply({ content: err.message });
+			if (err instanceof MissingEntitlementError && err.entitlementCheck.offer) {
+				await interaction.reply(err.entitlementCheck.offer);
+			} else {
+				await interaction.reply({ content: err.message });
+			}
 			return SpecialResponse.RespondedManually;
 		}
 		const date = new Date();

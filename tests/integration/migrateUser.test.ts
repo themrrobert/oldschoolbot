@@ -773,9 +773,10 @@ const allTableCommands: TestCommand[] = [
 	{
 		name: 'Create giveaway',
 		cmd: async user => {
-			await global.prisma!.giveaway.create({
+    const giveawayMessageId = '2222222222222';
+    await global.prisma!.giveaway.create({
 				data: {
-					id: randInt(1_000_000, 9_999_999),
+        id: giveawayMessageId,
 					channel_id: '1111111111111',
 					start_date: new Date(),
 					finish_date: new Date(Date.now() + 60 * 60 * 1000),
@@ -783,7 +784,7 @@ const allTableCommands: TestCommand[] = [
 					loot: { '2': 100 },
 					user_id: user.id,
 					duration: 60 * 60 * 1000,
-					message_id: '2222222222222',
+        message_id: giveawayMessageId,
 					users_entered: []
 				}
 			});
