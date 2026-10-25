@@ -55,6 +55,7 @@ const patMessages = [
 
 export async function getUserInfo(user: MUser) {
 	await refreshUserCache({ user });
+	const perkTier = await user.fetchPerkTier();
 	const roboChimpUser = await Cache.getRoboChimpUser(user.id);
 	const leaguesRanking = await roboChimpClient.user.count({
 		where: {
@@ -76,7 +77,7 @@ export async function getUserInfo(user: MUser) {
 	const taskText = task ? `${task.type}` : 'None';
 
 	const result = {
-		perkTier: user.perkTier,
+		perkTier,
 		isBlacklisted: await user.isBlacklisted(),
 		badges: user.badgesString,
 		isIronman: user.isIronman,
@@ -584,7 +585,7 @@ export const minionCommand = defineCommand({
 			}
 			return `Your ${kcName} KC is: ${kcAmount}.`;
 		}
-
+8
 		if (options.buy) return minionBuyCommand(user, Boolean(options.buy.ironman));
 		if (options.ironman) return ironmanCommand(user, interaction);
 

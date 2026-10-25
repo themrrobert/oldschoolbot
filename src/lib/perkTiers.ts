@@ -2,6 +2,8 @@ import { effectivePerkTier, getPerkTierEx, PerkTier, Time } from '@oldschoolgg/t
 import { LRUCache } from 'lru-cache';
 
 import { BitField, BOT_TYPE } from '@/lib/constants.js';
+import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
+import { srcMUserFetch } from '@/lib/user/MUser.js';
 
 type PerkTierHotCacheEntry = {
 	tier: number;
@@ -70,26 +72,29 @@ export async function getUsersPerkTier({
 		}
 	}
 
-	const roboChimpCached = await Cache.getRoboChimpUser(user.id, forceNoCache);
-	if (Array.isArray(roboChimpCached.entitlements) && roboChimpCached.entitlements.length > 0) {
-		const tier = effectivePerkTier(roboChimpCached.entitlements);
-		setHotCache(user.id, tier);
-		await Cache.setPerkTier(user.id, tier);
-		return tier as PerkTier;
-	}
-	const options = { courtesyTier: getCourtesyTier(user), legacyTier: getLegacyTier(user) };
-	const sharedTier = roboChimpCached
-		? getPerkTierEx(
+	const groupUserIds = await findGroupOfUser(user.id);
+	const groupUsers = await Promise.all(
+		groupUserIds.map(userId => (userId === user.id ? user : srcMUserFetch(userId)))
+	);
+	const tiers = await Promise.all(
+		groupUsers.map(async groupUser => {
+			const roboChimpUser = await Cache.getRoboChimpUser(groupUser.id, forceNoCache);
+			if (Array.isArray(roboChimpUser.entitlements) && roboChimpUser.entitlements.length > 0) {
+				return effectivePerkTier(roboChimpUser.entitlements);
+			}
+			const sharedTier = getPerkTierEx(
 				{
-					patreonBits: roboChimpCached.bits,
-					premiumTier: roboChimpCached.premium_balance_tier,
-					premiumIsCyr: roboChimpCached.premium_balance_is_cyr,
-					premiumExpiry: roboChimpCached.premium_balance_expiry_date
+					patreonBits: roboChimpUser.bits,
+					premiumTier: roboChimpUser.premium_balance_tier,
+					premiumIsCyr: roboChimpUser.premium_balance_is_cyr,
+					premiumExpiry: roboChimpUser.premium_balance_expiry_date
 				},
-				options
-			)
-		: getPerkTierEx({ patreonBits: [] }, options);
-	const tier = Math.max(sharedTier, roboChimpCached?.perk_tier ?? PerkTier.Zero);
+				{ courtesyTier: getCourtesyTier(groupUser), legacyTier: getLegacyTier(groupUser) }
+			);
+			return Math.max(sharedTier, roboChimpUser.perk_tier ?? PerkTier.Zero);
+		})
+	);
+	const tier = Math.max(...tiers, PerkTier.Zero);
 
 	setHotCache(user.id, tier);
 	if (forceNoCache) {
