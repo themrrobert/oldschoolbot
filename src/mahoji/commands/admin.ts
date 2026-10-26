@@ -224,6 +224,57 @@ function findDiscontinuedStaffBestowItems(schedule: StaffGrants) {
 
 const adminRunnableCommands: AdminRunnableCommand[] = [
 	{
+		name: 'tax_gp',
+		description: 'Tax eligible users by a percentage while preserving the configured GP floor.',
+		args: [
+			{
+				name: 'taxPercent',
+				description: 'Tax rate as a decimal percentage, from 0 through 0.02 (for example, 0.005).',
+				required: true
+			},
+			{
+				name: 'taxFloor',
+				description: 'Minimum GP balance after tax; at least 1,000,000.',
+				required: false
+			}
+		],
+		run: async ({ arg1, arg2, adminUser }) => {
+			if (!adminUser.isAdmin) return 'You must be an admin to tax GP.';
+			if (!arg1) return 'taxPercent is required.';
+
+			const taxPercent = Number(arg1);
+			if (!Number.isFinite(taxPercent) || taxPercent < 0 || taxPercent > 0.02) {
+				return 'taxPercent must be a decimal from 0 through 0.02.';
+			}
+			if (arg2 && (!/^\d+$/.test(arg2) || BigInt(arg2) < 1_000_000n)) {
+				return 'taxFloor must be a whole number of at least 1,000,000 GP.';
+			}
+			const taxFloor = arg2 ? BigInt(arg2) : 1_000_000_000n;
+
+			const rows = await prisma.$queryRaw<{ user_id: string; amount: bigint }[]>`
+				WITH eligible AS (
+					SELECT id, floor("GP" * ${taxPercent}::numeric)::bigint AS amount
+					FROM users
+					WHERE "GP" > ${taxFloor}::numeric / (1 - ${taxPercent}::numeric)
+				), taxed AS (
+					UPDATE users AS u
+					SET "GP" = u."GP" - eligible.amount
+					FROM eligible
+					WHERE u.id = eligible.id
+					RETURNING u.id
+				)
+				INSERT INTO gp_tax_history (user_id, instance_id, tax_percent, tax_floor, amount)
+				SELECT taxed.id, ${globalConfig.clientID}, ${taxPercent}::numeric, ${taxFloor}, eligible.amount
+				FROM taxed
+				JOIN eligible ON eligible.id = taxed.id
+				RETURNING user_id, amount;
+			`;
+
+			const totalTaxed = rows.reduce((total, row) => total + row.amount, 0n);
+			return `Taxed ${rows.length.toLocaleString()} users for ${totalTaxed.toLocaleString()} GP.`;
+		}
+	},
+	{
 		name: 'show_bestow_bank',
 		args: [
 			{
