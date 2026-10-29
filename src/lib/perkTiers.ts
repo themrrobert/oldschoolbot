@@ -2,6 +2,7 @@ import { getPerkTierEx, PerkTier, Time } from '@oldschoolgg/toolkit';
 import { LRUCache } from 'lru-cache';
 
 import { BitField, BOT_TYPE } from '@/lib/constants.js';
+import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 
 type PerkTierHotCacheEntry = {
 	tier: number;
@@ -70,20 +71,24 @@ export async function getUsersPerkTier({
 		}
 	}
 
-	const roboChimpCached = await Cache.getRoboChimpUser(user.id, forceNoCache);
+	const groupUserIds = await findGroupOfUser(user.id);
+	const roboChimpUsers = await Promise.all(
+		groupUserIds.map(userId => Cache.getRoboChimpUser(userId, forceNoCache))
+	);
 	const options = { courtesyTier: getCourtesyTier(user), legacyTier: getLegacyTier(user) };
-	const sharedTier = roboChimpCached
-		? getPerkTierEx(
-				{
-					patreonBits: roboChimpCached.bits,
-					premiumTier: roboChimpCached.premium_balance_tier,
-					premiumIsCyr: roboChimpCached.premium_balance_is_cyr,
-					premiumExpiry: roboChimpCached.premium_balance_expiry_date
-				},
-				options
-			)
-		: getPerkTierEx({ patreonBits: [] }, options);
-	const tier = Math.max(sharedTier, roboChimpCached?.perk_tier ?? PerkTier.Zero);
+	const sharedTier = Math.max(
+		...roboChimpUsers.map(roboChimpUser =>
+			getPerkTierEx({
+				patreonBits: roboChimpUser.bits,
+				premiumTier: roboChimpUser.premium_balance_tier,
+				premiumIsCyr: roboChimpUser.premium_balance_is_cyr,
+				premiumExpiry: roboChimpUser.premium_balance_expiry_date
+			})
+		),
+		getPerkTierEx({ patreonBits: [] }, options),
+		...roboChimpUsers.map(roboChimpUser => roboChimpUser.perk_tier ?? PerkTier.Zero)
+	);
+	const tier = sharedTier;
 
 	setHotCache(user.id, tier);
 	if (forceNoCache) {
