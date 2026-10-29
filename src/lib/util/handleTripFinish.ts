@@ -1,4 +1,3 @@
-import { ASSIGNMENT_TRIP_COSTS, ASSIGNMENT_TRIP_ITEM, getActiveAssignment } from '@/lib/bso/commands/islandUpgrades.js';
 import { BSOItem } from '@/lib/bso/BSOItem.js';
 import { clAdjustedDroprate } from '@/lib/bso/bsoUtil.js';
 import { ASSIGNMENT_TRIP_COSTS, ASSIGNMENT_TRIP_ITEM, getActiveAssignment } from '@/lib/bso/commands/islandUpgrades.js';

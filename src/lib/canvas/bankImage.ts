@@ -254,7 +254,7 @@ class BankImageTask {
 	public treeImage!: CanvasImage;
 	private readonly initPromise: Promise<void>;
 	private initStarting = false;
-	public ready = false;
+	private _ready = false;
 
 	public blackEffect: Image | null = null;
 	public redEffect: Image | null = null;
@@ -270,6 +270,9 @@ class BankImageTask {
 
 	async waitTillReady() {
 		await this.initPromise;
+	}
+	get isReady() {
+		return this._ready;
 	}
 	constructor() {
 		this.initPromise = this.init();
@@ -364,6 +367,7 @@ class BankImageTask {
 				};
 			})
 		);
+		this._ready = true;
 	}
 
 	private getCustomPurpleEffect(color: string) {
@@ -527,8 +531,8 @@ class BankImageTask {
 			mahojiFlags?: BankFlag[];
 		} & BaseCanvasArgs
 	): Promise<BankImageResult> {
-		if (!this.ready) {
-			await this.init();
+		if (!this.isReady) {
+			await this.waitTillReady();
 		}
 		let { user, collectionLog, title = '', showValue = true } = opts;
 		const bank = opts.bank.clone();

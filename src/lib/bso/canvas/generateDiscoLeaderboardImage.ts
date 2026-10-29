@@ -110,9 +110,8 @@ export async function generateDiscoLeaderboardImage({
 	overall: DiscoOverallLeader;
 	leaders: DiscoLeaderboardEntry[];
 }) {
-	if (!bankImageTask.ready) {
-		await bankImageTask.init();
-		bankImageTask.ready = true;
+	if (!bankImageTask.isReady) {
+		await bankImageTask.waitTillReady();
 	}
 	const { sprite } = bankImageTask.getBgAndSprite({ bankBackgroundId: 1 });
 	const canvas = new OSRSCanvas({ width: 500, height: 400, sprite });
