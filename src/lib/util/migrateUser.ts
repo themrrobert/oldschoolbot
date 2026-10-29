@@ -44,6 +44,7 @@ export async function migrateUser(_source: string | MUser, _dest: string | MUser
 	transactions.push(prisma.bingoParticipant.deleteMany({ where: { user_id: destUser.id } }));
 	transactions.push(prisma.userCounter.deleteMany({ where: { user_id: BigInt(destUser.id) } }));
 	transactions.push(prisma.userLog.deleteMany({ where: { user_id: BigInt(destUser.id) } }));
+	transactions.push(prisma.gPTaxHistory.deleteMany({ where: { user_id: destUser.id } }));
 
 	// BSO: Delete target
 	transactions.push(prisma.tameActivity.deleteMany({ where: { user_id: destUser.id } }));
@@ -79,6 +80,9 @@ export async function migrateUser(_source: string | MUser, _dest: string | MUser
 	transactions.push(prisma.user.deleteMany({ where: { id: destUser.id } }));
 
 	// Update queries:
+	transactions.push(
+		prisma.gPTaxHistory.updateMany({ where: { user_id: sourceUser.id }, data: { user_id: destUser.id } })
+	);
 	transactions.push(prisma.user.updateMany({ where: { id: sourceUser.id }, data: { id: destUser.id } }));
 
 	transactions.push(
