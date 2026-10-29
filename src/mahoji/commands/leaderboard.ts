@@ -768,12 +768,6 @@ export const leaderboardCommand = defineCommand({
 		},
 		{
 			type: 'Subcommand',
-			name: 'gp',
-			description: 'Check the GP leaderboard.',
-			options: [ironmanOnlyOption]
-		},
-		{
-			type: 'Subcommand',
 			name: 'skills',
 			description: 'Check the skills/xp/levels leaderboards.',
 			options: [
