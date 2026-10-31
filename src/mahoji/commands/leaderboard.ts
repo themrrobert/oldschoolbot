@@ -265,26 +265,6 @@ async function openLb(interaction: MInteraction, name: string, ironmanOnly: bool
 	});
 }
 
-async function gpLb(interaction: MInteraction, ironmanOnly: boolean) {
-	const users = (
-		await prisma.$queryRawUnsafe<{ id: string; GP: number }[]>(
-			`SELECT "id"::text as id, "GP"
-			 FROM users
-			 WHERE "GP" > 1000000
-			 ${ironmanOnly ? ' AND "minion.ironman" = true ' : ''}
-			 ORDER BY "GP" DESC
-			 LIMIT 100;`
-		)
-	).map(res => ({ id: res.id, score: Number(res.GP) }));
-	return doMenuWrapper({
-		ironmanOnly,
-		interaction,
-		users,
-		title: 'GP Leaderboard',
-		formatter: val => `${val.toLocaleString()} GP`
-	});
-}
-
 async function skillsLb(interaction: MInteraction, inputSkill: string, type: 'xp' | 'level', ironmanOnly: boolean) {
 	let res: ({ id: string; totalxp: bigint } & Record<`skills.${SkillNameType}`, bigint>)[] = [];
 	let overallUsers: { id: string; totalLevel: number; totalXP: number }[] = [];
@@ -995,10 +975,6 @@ export const leaderboardCommand = defineCommand({
 
 		if (options.agility_laps) {
 			return lapsLb(interaction, options.agility_laps.course);
-		}
-
-		if (options.gp) {
-			return gpLb(interaction, Boolean(options.gp.ironmen_only));
 		}
 
 		if (options.skills) {

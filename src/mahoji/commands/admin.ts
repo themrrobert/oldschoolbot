@@ -22,7 +22,7 @@ import { LazyMysteryBoxTable, SkrinkBoxTable, SkrodBoxTable } from '@/lib/bso/op
 import { BeachMysteryBoxTable, FestivePresentTable, RoyalMysteryBoxTable } from '@/lib/bso/openables/tables.js';
 import { getLydiaQuote } from '@/lib/bso/summerDays.js';
 
-import { dateFm, EmbedBuilder } from '@oldschoolgg/discord';
+import { dateFm, EmbedBuilder, type SpecialResponse } from '@oldschoolgg/discord';
 import type { GearSetup } from '@oldschoolgg/gear';
 import {
 	calcPerHour,
@@ -57,6 +57,7 @@ import { BadgesEnum, BitField, BitFieldData, badges, Channel, globalConfig, META
 import { customItems } from '@/lib/customItems/util.js';
 import { allDcSet } from '@/lib/data/Collections.js';
 import { GrandExchange } from '@/lib/grandExchange.js';
+import { doMenuWrapper } from '@/lib/menuWrapper.js';
 import { syncCustomPrices } from '@/lib/preStartup.js';
 import { countUsersWithItemInCl } from '@/lib/rawSql.js';
 import { sorts } from '@/lib/sorts.js';
@@ -599,8 +600,9 @@ interface ViewableThing {
 		clientSettings: ClientStorage,
 		_choice?: String,
 		user?: MUser,
-		rng?: RNGProvider
-	) => Promise<Bank | SendableMessage>;
+		rng?: RNGProvider,
+		interaction?: MInteraction
+	) => Promise<Bank | SendableMessage | SpecialResponse>;
 }
 
 const bso757xxItemIDs = Array.from({ length: 37 }, (_, index) => 75_700 + index);
@@ -666,7 +668,33 @@ async function generateDiscoPreviewImage(): Promise<SendableFile> {
 	return { buffer: await canvasToBuffer(canvas), name: 'disco-preview.png' };
 }
 
+async function gpLb(interaction: MInteraction) {
+	const users = (
+		await prisma.$queryRawUnsafe<{ id: string; GP: number }[]>(
+			`SELECT "id"::text as id, "GP"
+			 FROM users
+			 WHERE "GP" > 1000000
+			 ORDER BY "GP" DESC
+			 LIMIT 100;`
+		)
+	).map(res => ({ id: res.id, score: Number(res.GP) }));
+	return doMenuWrapper({
+		ironmanOnly: false,
+		interaction,
+		users,
+		title: 'GP Leaderboard',
+		formatter: val => `${val.toLocaleString()} GP`
+	});
+}
+
 const viewableThings: ViewableThing[] = [
+	{
+		name: 'GP Leaderboard',
+		run: async (_clientSettings, _choice, _user, _rng, interaction) => {
+			if (!interaction) return 'Unable to find the interaction.';
+			return gpLb(interaction);
+		}
+	},
 	{
 		name: 'Disco Preview',
 		run: async () => ({ files: [await generateDiscoPreviewImage()] })
@@ -1674,7 +1702,7 @@ ${META_CONSTANTS.RENDERED_STR}`
 				);
 			}
 			const clientSettings = await ClientSettings.fetch();
-			const res = await thing.run(clientSettings, options.view.choices, adminUser, rng);
+			const res = await thing.run(clientSettings, options.view.choices, adminUser, rng, interaction);
 			if (!(res instanceof Bank)) return res;
 			return new MessageBuilder().addBankImage({
 				bank: res,
