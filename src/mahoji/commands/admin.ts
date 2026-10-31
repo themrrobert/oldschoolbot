@@ -253,7 +253,7 @@ const adminRunnableCommands: AdminRunnableCommand[] = [
 
 			const rows = await prisma.$queryRaw<{ user_id: string; amount: bigint }[]>`
 				WITH eligible AS (
-					SELECT id, floor("GP" * ${taxPercent}::numeric)::bigint AS amount
+					SELECT id, "GP" AS pre_tax_gp, floor("GP" * ${taxPercent}::numeric)::bigint AS amount
 					FROM users
 					WHERE "GP" > ${taxFloor}::numeric / (1 - ${taxPercent}::numeric)
 				), taxed AS (
@@ -261,10 +261,19 @@ const adminRunnableCommands: AdminRunnableCommand[] = [
 					SET "GP" = u."GP" - eligible.amount
 					FROM eligible
 					WHERE u.id = eligible.id
-					RETURNING u.id
+					RETURNING u.id, u."GP" AS post_tax_gp
 				)
-				INSERT INTO gp_tax_history (user_id, instance_id, tax_percent, tax_floor, amount)
-				SELECT taxed.id, ${globalConfig.clientID}, ${taxPercent}::numeric, ${taxFloor}, eligible.amount
+				INSERT INTO gp_tax_history (
+					user_id, instance_id, tax_percent, tax_floor, pre_tax_gp, post_tax_gp, amount
+				)
+				SELECT
+					taxed.id,
+					${globalConfig.clientID},
+					${taxPercent}::numeric,
+					${taxFloor},
+					eligible.pre_tax_gp,
+					taxed.post_tax_gp,
+					eligible.amount
 				FROM taxed
 				JOIN eligible ON eligible.id = taxed.id
 				RETURNING user_id, amount;

@@ -15,3 +15,9 @@ Don't run any unit/integration tests unless I ask... only type testing is allowe
 
 .env is for general local testing
 
+## Prisma schemas
+
+BSO: `prisma/schema.prisma` is truth. Keep `packages/robochimp/prisma/bso_schema.prisma` synced.
+
+RoboChimp: `packages/robochimp/prisma/robochimp_schema.prisma` is truth. Keep `prisma/robochimp.prisma` synced.
+
