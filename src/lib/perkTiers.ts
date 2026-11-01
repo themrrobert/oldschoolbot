@@ -1,8 +1,9 @@
+import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
+
 import { getPerkTierEx, PerkTier, Time } from '@oldschoolgg/toolkit';
 import { LRUCache } from 'lru-cache';
 
 import { BitField, BOT_TYPE } from '@/lib/constants.js';
-import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 
 type PerkTierHotCacheEntry = {
 	tier: number;
@@ -72,9 +73,7 @@ export async function getUsersPerkTier({
 	}
 
 	const groupUserIds = await findGroupOfUser(user.id);
-	const roboChimpUsers = await Promise.all(
-		groupUserIds.map(userId => Cache.getRoboChimpUser(userId, forceNoCache))
-	);
+	const roboChimpUsers = await Promise.all(groupUserIds.map(userId => Cache.getRoboChimpUser(userId, forceNoCache)));
 	const options = { courtesyTier: getCourtesyTier(user), legacyTier: getLegacyTier(user) };
 	const sharedTier = Math.max(
 		...roboChimpUsers.map(roboChimpUser =>

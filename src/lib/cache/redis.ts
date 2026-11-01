@@ -314,7 +314,8 @@ class CacheManager {
 		const key = RedisKeys.RoboChimpUser(BigInt(userId));
 		if (!forceRefresh) {
 			const cachedUser = await this.getJson<RobochimpUser>(key);
-			if (cachedUser && this.isCompleteRoboChimpUser(cachedUser)) return this.deserializeRoboChimpUser(cachedUser);
+			if (cachedUser && this.isCompleteRoboChimpUser(cachedUser))
+				return this.deserializeRoboChimpUser(cachedUser);
 		}
 
 		const user = await roboChimpClient.user.upsert({
