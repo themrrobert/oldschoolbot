@@ -60,6 +60,14 @@ const RATELIMITS: Record<RatelimitType, RatelimitConfig> = {
 
 const BotKeys = RedisKeys[BOT_TYPE];
 const ROBOCHIMP_USER_CACHE_TTL_SECONDS = TTL.Minute * 5;
+const roboChimpBigIntFields = [
+	'id',
+	'migrated_user_id',
+	'osb_total_xp',
+	'bso_total_xp',
+	'premium_balance_expiry_date',
+	'last_patreon_gift'
+] as const;
 type CachedGuildSettings = Pick<Guild, 'id' | 'disabledCommands' | 'petchannel' | 'staffOnlyChannels'>;
 type GuildUpdateInput = Partial<IGuild> & {
 	mega_duck_location?: MegaDuckLocation | Prisma.InputJsonValue;
@@ -110,6 +118,14 @@ class CacheManager {
 	private async getJson<T = unknown>(key: string): Promise<T | null> {
 		const raw = await this.client.get(key);
 		return raw ? JSON.parse(raw) : null;
+	}
+
+	private deserializeRoboChimpUser(user: RobochimpUser): RobochimpUser {
+		const result = { ...user } as Record<string, unknown>;
+		for (const field of roboChimpBigIntFields) {
+			if (typeof result[field] === 'string') result[field] = BigInt(result[field]);
+		}
+		return result as unknown as RobochimpUser;
 	}
 
 	private async getString(key: string): Promise<string | null> {
@@ -298,7 +314,7 @@ class CacheManager {
 		const key = RedisKeys.RoboChimpUser(BigInt(userId));
 		if (!forceRefresh) {
 			const cachedUser = await this.getJson<RobochimpUser>(key);
-			if (cachedUser && this.isCompleteRoboChimpUser(cachedUser)) return cachedUser;
+			if (cachedUser && this.isCompleteRoboChimpUser(cachedUser)) return this.deserializeRoboChimpUser(cachedUser);
 		}
 
 		const user = await roboChimpClient.user.upsert({
