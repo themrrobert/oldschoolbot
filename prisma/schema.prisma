@@ -1771,7 +1771,7 @@ enum command_name_enum {
   invite
   ironman
   is
-  islandupgrade
+  island
   itemtrivia
   jmodcomments
   jmodtweets
