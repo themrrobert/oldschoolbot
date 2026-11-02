@@ -19,6 +19,7 @@ import { Skills } from '@/lib/skilling/skills/index.js';
 import { type SkillNameType, SkillsArray } from '@/lib/skilling/types.js';
 import { fetchCLLeaderboard, fetchTameCLLeaderboard } from '@/lib/util/clLeaderboard.js';
 import { userEventsToMap } from '@/lib/util/userEvents.js';
+import { Prisma } from '@/prisma/main.js';
 
 async function kcLb(interaction: MInteraction, name: string, ironmanOnly: boolean, tame: boolean) {
 	const monster = effectiveMonsters.find(mon => [mon.name, ...mon.aliases].some(alias => stringMatches(alias, name)));
@@ -568,40 +569,58 @@ async function masteryLb(interaction: MInteraction) {
 	});
 }
 
-const discoAestheticChoices = [
+const discoRankingChoices = [
+	{ name: 'Combined', value: 'combined' },
+	{ name: 'Ragged Renegades', value: 'ragged_renegades' },
+	{ name: 'Neon Plushies', value: 'neon_plushies' },
+	{ name: 'Chrome Wreckers', value: 'chrome_wreckers' },
 	{ name: 'Futuristic', value: 'future' },
 	{ name: 'Ragdoll', value: 'ragdoll' },
 	{ name: 'Anti-Fashion', value: 'anti' }
 ] as const;
-type DiscoAestheticChoice = (typeof discoAestheticChoices)[number]['value'];
-const discoAesthetics: Record<DiscoAestheticChoice, DiscoAesthetic> = {
-	future: 'Futuristic',
-	ragdoll: 'Ragdoll',
-	anti: 'Anti-Fashion'
+type DiscoRankingChoice = (typeof discoRankingChoices)[number]['value'];
+const discoRankings: Record<DiscoRankingChoice, { name: string; aesthetics: readonly DiscoAesthetic[] }> = {
+	combined: { name: 'Combined', aesthetics: DISCO_AESTHETICS },
+	ragged_renegades: { name: 'Ragged Renegades', aesthetics: ['Ragdoll', 'Anti-Fashion'] },
+	neon_plushies: { name: 'Neon Plushies', aesthetics: ['Futuristic', 'Ragdoll'] },
+	chrome_wreckers: { name: 'Chrome Wreckers', aesthetics: ['Futuristic', 'Anti-Fashion'] },
+	future: { name: 'Futuristic', aesthetics: ['Futuristic'] },
+	ragdoll: { name: 'Ragdoll', aesthetics: ['Ragdoll'] },
+	anti: { name: 'Anti-Fashion', aesthetics: ['Anti-Fashion'] }
 };
 
-async function discoLb(interaction: MInteraction, choice?: DiscoAestheticChoice) {
-	const aesthetics = choice ? [discoAesthetics[choice]] : DISCO_AESTHETICS;
+async function discoLb(interaction: MInteraction, choice?: DiscoRankingChoice) {
+	const ranking = choice ? discoRankings[choice] : null;
+	const aesthetics = ranking ? ranking.aesthetics : DISCO_AESTHETICS;
 	const limit = choice ? 10 : 3;
+	const score = (aesthetics: readonly DiscoAesthetic[]) =>
+		aesthetics
+			.map(aesthetic => `COALESCE((disco_stats->'points'->>'${aesthetic}')::integer, 0)`)
+			.join(' + ');
 	const leaderboards = await Promise.all(
-		aesthetics.map(async aesthetic => ({
-			aesthetic,
-			users: await prisma.$queryRaw<{ id: string; score: number }[]>`
-				SELECT user_id::text AS id, COALESCE((disco_stats->'points'->>${aesthetic})::integer, 0) AS score
-				FROM user_stats
-				WHERE COALESCE((disco_stats->'points'->>${aesthetic})::integer, 0) > 0
-				ORDER BY score DESC, user_id
-				LIMIT ${limit};
-			`
-		}))
+		(ranking ? [ranking] : aesthetics.map(aesthetic => ({ name: aesthetic, aesthetics: [aesthetic] }))).map(
+			async ranking => {
+				const total = score(ranking.aesthetics);
+				return {
+					aesthetic: ranking.name,
+					users: await prisma.$queryRaw<{ id: string; score: number }[]>`
+						SELECT user_id::text AS id, (${Prisma.raw(total)})::integer AS score
+						FROM user_stats
+						WHERE (${Prisma.raw(total)}) > 0
+						ORDER BY score DESC, user_id
+						LIMIT ${limit};
+					`
+				};
+			}
+		)
 	);
 
-	if (choice) {
+	if (ranking) {
 		return doMenuWrapper({
 			interaction,
 			ironmanOnly: false,
 			users: leaderboards[0].users,
-			title: `Disco Bloodbath ${leaderboards[0].aesthetic} Leaderboard`
+			title: `Disco Bloodbath ${ranking.name} Leaderboard`
 		});
 	}
 
@@ -939,9 +958,9 @@ export const leaderboardCommand = defineCommand({
 				{
 					type: 'String',
 					name: 'aesthetic',
-					description: 'Show one aesthetic top 10.',
+					description: 'Show one Disco Bloodbath ranking top 10.',
 					required: false,
-					choices: discoAestheticChoices
+					choices: discoRankingChoices
 				}
 			]
 		}
