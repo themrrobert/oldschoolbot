@@ -40,7 +40,8 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 		}
 
 		if (option.type === 'String') {
-			if (typeof optionValue !== 'string' && typeof optionValue !== 'number') return `${option.name} must be text.`;
+			if (typeof optionValue !== 'string' && typeof optionValue !== 'number')
+				return `${option.name} must be text.`;
 			if (option.choices && !option.choices.some(choice => choice.value === optionValue)) {
 				return `${option.name} is not a valid choice.`;
 			}

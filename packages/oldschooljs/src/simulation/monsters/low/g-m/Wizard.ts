@@ -1,7 +1,7 @@
 import LootTable from '@/structures/LootTable.js';
 import { SimpleMonster } from '@/structures/Monster.js';
 
-export const WizardTable = new LootTable({ limit: 128 })
+export const WizardTable: LootTable = new LootTable({ limit: 128 })
 	.every('Bones')
 	.add('Blue wizard robe', 1, 7)
 	.add('Blue wizard hat', 1, 3)
