@@ -5,6 +5,7 @@ import { bsoTamesHatchedLb } from '@/lib/bso/leaderboards/tamesHatchedLb.js';
 import { calcWhatPercent, formatDuration, stringMatches, toTitleCase } from '@oldschoolgg/toolkit';
 import { convertXPtoLVL } from 'oldschooljs';
 
+import { Prisma } from '@/prisma/main.js';
 import { choicesOf, defineOption } from '@/discord/index.js';
 import { ClueTiers } from '@/lib/clues/clueTiers.js';
 import { MAX_LEVEL, masteryKey } from '@/lib/constants.js';
@@ -19,7 +20,6 @@ import { Skills } from '@/lib/skilling/skills/index.js';
 import { type SkillNameType, SkillsArray } from '@/lib/skilling/types.js';
 import { fetchCLLeaderboard, fetchTameCLLeaderboard } from '@/lib/util/clLeaderboard.js';
 import { userEventsToMap } from '@/lib/util/userEvents.js';
-import { Prisma } from '@/prisma/main.js';
 
 async function kcLb(interaction: MInteraction, name: string, ironmanOnly: boolean, tame: boolean) {
 	const monster = effectiveMonsters.find(mon => [mon.name, ...mon.aliases].some(alias => stringMatches(alias, name)));
@@ -594,9 +594,7 @@ async function discoLb(interaction: MInteraction, choice?: DiscoRankingChoice) {
 	const aesthetics = ranking ? ranking.aesthetics : DISCO_AESTHETICS;
 	const limit = choice ? 10 : 3;
 	const score = (aesthetics: readonly DiscoAesthetic[]) =>
-		aesthetics
-			.map(aesthetic => `COALESCE((disco_stats->'points'->>'${aesthetic}')::integer, 0)`)
-			.join(' + ');
+		aesthetics.map(aesthetic => `COALESCE((disco_stats->'points'->>'${aesthetic}')::integer, 0)`).join(' + ');
 	const leaderboards = await Promise.all(
 		(ranking ? [ranking] : aesthetics.map(aesthetic => ({ name: aesthetic, aesthetics: [aesthetic] }))).map(
 			async ranking => {
